@@ -17,7 +17,7 @@ This guide will help you to connect to the Raspberry Pi, set it up, and get star
    ```bash
    ssh pi@raspberrypi.local
    ```
-The default password is `raspberry`.
+   The default password is `raspberry`.
 3. If prompted, type `yes` to accept the SSH key fingerprint.
    
 You should now be logged into the Raspberry Pi terminal.
