@@ -23,7 +23,7 @@ import sounddevice as sd
 import numpy as np
 import time
 
-frequence = 16_000     
+frequence = 44_100 # The only frequencies supported by the micro are 44100 and 48000 Hz
 bloc_duree = 0.3      
 device_name = "USB PnP Sound Device"  #This is the micro that we have to test but we can change it
 
