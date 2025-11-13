@@ -1,9 +1,30 @@
+"""
+Microphone sound level monitoring script
+
+Author: Louca Mathieu
+        Florian Stormacq
+
+Optimizations:
+    1. RMS calculation optimized using matrix multiplication via np.dot instead of element-wise operations.
+    2. Reduced blocksize to 2048 samples to decrease latency and improve responsiveness. (Possible to adjust based on needs, e.g. higher for less CPU usage; 4096, 8192, etc.)
+    3. Precised data type for audio input to 'float32' to ensure consistency and potentially improve performance.
+    4. Adjust the audia frequency to 16kHz
+
+
+Other optimizations:
+    - Remove print statements in the audio callback to avoid blocking the audio stream.
+    - Implement a Producer-Consumer pattern
+    - Secure the DB calculation against NaN, inf, negative log inputs
+
+I think we should also test the latency of the processing in the callback to be sure that we are not exceeding the block duration. That would avoid to be warned for a past problem.
+"""
+
 import sounddevice as sd
 import numpy as np
 import time
 
-frequence = 44100     
-bloc_duree = 0.1      
+frequence = 16_000     
+bloc_duree = 0.3      
 device_name = "USB PnP Sound Device"  #This is the micro that we have to test but we can change it
 
 devices = sd.query_devices() 
@@ -22,7 +43,9 @@ print("Now, we have to press Ctrl+C to stop the program.")
 def audio_callback(indata, frames, time_info, status): #main function
     if status:
         print(status)
-    rms = np.sqrt(np.mean(indata**2)) #calculate RMS
+    
+    # rms = np.sqrt(np.mean(indata**2)) #calculate RMS --- IGNORE ---
+    rms = np.sqrt(np.dot(indata.T, indata)[0, 0] / len(indata)) # Optimise RMS calculation with matrix multiplication via np.dot
     niveau_db = 20 * np.log10(rms + 1e-10)  
     
     if niveau_db < -45:
@@ -42,10 +65,11 @@ def audio_callback(indata, frames, time_info, status): #main function
 with sd.InputStream(device=device_id,
                     channels=1,
                     samplerate=frequence,
-                    blocksize=int(frequence * bloc_duree),
+                    blocksize=2048,
+                    dtype='float32',
                     callback=audio_callback):
     try:
         while True:
-            time.sleep(0.1)
+            time.sleep(bloc_duree)
     except KeyboardInterrupt:
         print("\n🛑 Stopped.")
