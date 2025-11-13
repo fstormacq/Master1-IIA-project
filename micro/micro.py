@@ -24,7 +24,7 @@ import numpy as np
 import time
 
 frequence = 44_100 # The only frequencies supported by the micro are 44100 and 48000 Hz
-bloc_duree = 0.3      
+bloc_duree = 0.1      
 device_name = "USB PnP Sound Device"  #This is the micro that we have to test but we can change it
 
 devices = sd.query_devices() 
@@ -65,7 +65,7 @@ def audio_callback(indata, frames, time_info, status): #main function
 with sd.InputStream(device=device_id,
                     channels=1,
                     samplerate=frequence,
-                    blocksize=16384,
+                    blocksize=frequence ,
                     dtype='float32',
                     callback=audio_callback):
     try:
