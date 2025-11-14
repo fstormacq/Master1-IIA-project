@@ -9,7 +9,6 @@ const int leftPin = 13;
 void setupPins() {
     pinMode(upperPin, OUTPUT);
     pinMode(rightPin, OUTPUT);
-    pinMode(bottomPin, OUTPUT);
     pinMode(leftPin, OUTPUT);
 
     stopAll();
@@ -30,10 +29,6 @@ void vibrate(String position, int intensity, int duration){
         analogWrite(rightPin, intensity);
         activepin = rightPin;
     }
-    else if (position == "BOT") {
-        analogWrite(bottomPin, intensity);        
-        activepin = bottomPin;
-    }
     else if (position == "GAU") {
         analogWrite(leftPin, intensity);
         activepin = leftPin;
@@ -46,7 +41,6 @@ void vibrate(String position, int intensity, int duration){
 void stopAll() {
     analogWrite(upperPin, 0);
     analogWrite(rightPin, 0);
-    analogWrite(bottomPin, 0);
     analogWrite(leftPin, 0);
     activePin = -1;
     vibrationEndTime = 0;

@@ -17,10 +17,7 @@ void handleCommand(const String &cmd) {
         sscanf(cmd.c_str(), "UPP %d %d", &intensity, &duration);
         vibrate("UPP", intensity, duration);
     }
-    else if (cmd.startsWith("BOT")) {
-        sscanf(cmd.c_str(), "BOT %d %d", &intensity, &duration);
-        vibrate("BOT", intensity, duration);
-    }
+
     else if (cmd == "STOP") {
         stopAll();
     }
