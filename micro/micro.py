@@ -65,7 +65,7 @@ def audio_callback(indata, frames, time_info, status): #main function
 with sd.InputStream(device=device_id,
                     channels=1,
                     samplerate=frequence,
-                    blocksize=frequence ,
+                    blocksize=int(frequence * bloc_duree),
                     dtype='float32',
                     callback=audio_callback):
     try:
