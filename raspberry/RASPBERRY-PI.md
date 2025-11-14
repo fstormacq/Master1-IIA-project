@@ -29,7 +29,55 @@ sudo apt update
 sudo apt upgrade -y
 ```
 
-## 4. Ending the SSH Session
+## 4. Setting it Up
+
+First, you need to install all the necessary dependencies. Run the following command:
+```bash
+sudo apt install -y python3 python3-pip python3-venv git
+```
+
+### Configuring Git
+
+You must of course configure git with your name and email:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+and optionally set up SSH keys for GitHub access:
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+When prompted, you can just press Enter to accept the default file location and leave the passphrase empty for convenience. Then add the SSH key to the ssh-agent:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+Finally, copy the SSH key to your clipboard:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+and add it to your GitHub account under Settings > SSH and GPG keys.
+
+After completing these steps, you should be ready to clone repositories and push changes to GitHub from your Raspberry Pi.
+
+## Installing uv
+
+To install `uv`, run the following command:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+uv --version
+```
+
+## 5. Ending the SSH Session
 When you're done, you can log out of the Raspberry Pi by typing:
 ```bash
 exit
