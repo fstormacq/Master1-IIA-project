@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [tool.uv]
-system-site-packages = true
+system = true
 
 [tool.uv.sources]
 pyrealsense2-wrapper = { path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" }
