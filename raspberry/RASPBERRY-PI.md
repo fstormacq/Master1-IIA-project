@@ -15,7 +15,7 @@ This guide will help you to connect to the Raspberry Pi, set it up, and get star
 1. Open a terminal on your computer.
 2. Use the SSH command to connect:
    ```bash
-   ssh pi@raspberrypi.local
+   ssh pi@raspberrypi3.local
    ```
    The default password is `raspberry`.
 3. If prompted, type `yes` to accept the SSH key fingerprint.
@@ -85,18 +85,21 @@ exit
 
 # Installing pyrealsense2 on Raspberry Pi
 
-1. Build and install the `pyrealsense2` package by following the instructions in the [pi-realsense.md](raspberry/pi-realsense.md) guide. you should obtain a `pyrealsense2.so` file after building.
-2. Create a wheel 
+1. Build and install the `pyrealsense2` package by following the instructions in the [pi-realsense.md](./pi-realsense.md) guide. you should obtain a `pyrealsense2.so` file after building.
+2. Copy the `pyrealsense2.so` file to the virtual environment used by `uv`. You can follow these steps:
+   ```bash
+   # Find the site-packages directory of the uv virtual environment
+   UV_SITE=$(uv run python3 -c "import site; print(site.getsitepackages()[0])")
+
+   # Create a symbolic link to the pyrealsense2.so file
+   ln -s /path/to/pyrealsense2.so "$UV_SITE/pyrealsense2.so"
+
+   # Verify the installation
+   uv run python3 -c "import pyrealsense2 as rs; print(rs.__version__)"
+   ```
+   Be sure to replace `/path/to/pyrealsense2.so` with the actual path where the `pyrealsense2.so` file is located. An example path might be `/usr/local/lib/python3.13/dist-packages/pyrealsense2.cpython-313-aarch64-linux-gnu.so`.
 
 # Using UV with System Packages
-
-Since `pyrealsense2` is compiled and installed in the system Python packages (not available via PyPI), the project includes a `uv.toml` configuration file that enables access to system packages:
-
-```toml
-# uv.toml
-[pip]
-system = true
-```
 
 This configuration allows UV's virtual environment to access the manually compiled `pyrealsense2` module. Simply use UV commands normally:
 
@@ -111,9 +114,28 @@ uv run camera/canne_depth_mvp.py
 uv run python3
 ```
 
-# Setting Up Your Projects
+# Setting Up the project using UV
 
-In this guide, we will cover how to use `uv`, a tool for managing Python environments and packages, on your Raspberry Pi.
+To set up your project using `uv`, follow these steps:
+1. Navigate to your project directory:
+   ```bash
+   cd /path/to/your/project
+   ```
+2. Initialize a new `uv` environment if needed:
+   ```bash
+   uv init
+   ```
+   or activate an existing one:
+   ```bash
+   uv activate
+   ```
+3. Install project dependencies:
+   ```bash
+   uv sync
+   ```
+4. Run your project scripts using `uv`:
+   ```bash
+   uv run your_script.py
+   ```
 
-*This section will come later.*
-
+For more information on using `uv`, refer to the [UV documentation](../UV.md).
