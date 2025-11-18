@@ -7,5 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.3.4",
     "pyrealsense2>=2.56.5.9235; platform_machine == 'x86_64'",
+    "pyrealsense2-wrapper ; platform_machine == 'aarch64' and sys_platform == 'linux'",
     "sounddevice>=0.5.3",
 ]
+
+[tool.uv.sources]
+pyrealsense2-wrapper = { path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" }
