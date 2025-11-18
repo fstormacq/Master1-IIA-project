@@ -11,5 +11,8 @@ dependencies = [
     "sounddevice>=0.5.3",
 ]
 
+[tool.uv]
+system-site-packages = true
+
 [tool.uv.sources]
 pyrealsense2-wrapper = { path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" }
