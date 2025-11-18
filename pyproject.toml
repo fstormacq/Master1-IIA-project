@@ -8,11 +8,12 @@ dependencies = [
     "numpy>=2.3.4",
     "opencv-python>=4.11.0.86",
     "pyrealsense2>=2.56.5.9235; platform_machine == 'x86_64'",
+    "pyrealsense2-wrapper",
+    "pyrealsense2-wrapper; platform_machine == 'aarch64' and sys_platform == 'linux'",
     "sounddevice>=0.5.3",
 ]
 
-# Note: On Raspberry Pi (aarch64), pyrealsense2 must be compiled from source
-# and installed as a system package. The uv.toml config enables access to it.
+# Note: On Raspberry Pi (aarch64), add pyrealsense2 to dependencies manually after sync:
 
 [tool.uv.sources]
-pyrealsense2-wrapper = { path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" }
+pyrealsense2-wrapper = { path = "./wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" , editable = true }

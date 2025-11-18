@@ -60,7 +60,7 @@ dependencies = [
     { name = "numpy" },
     { name = "opencv-python" },
     { name = "pyrealsense2", marker = "platform_machine == 'x86_64'" },
-    { name = "pyrealsense2-wrapper", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" },
+    { name = "pyrealsense2-wrapper" },
     { name = "sounddevice" },
 ]
 
@@ -69,6 +69,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.3.4" },
     { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "pyrealsense2", marker = "platform_machine == 'x86_64'", specifier = ">=2.56.5.9235" },
+    { name = "pyrealsense2-wrapper", path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" },
     { name = "pyrealsense2-wrapper", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'", path = "wheels/pyrealsense2_wrapper-0.1-py3-none-any.whl" },
     { name = "sounddevice", specifier = ">=0.5.3" },
 ]
