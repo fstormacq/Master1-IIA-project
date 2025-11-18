@@ -83,6 +83,34 @@ When you're done, you can log out of the Raspberry Pi by typing:
 exit
 ```
 
+# Installing pyrealsense2 on Raspberry Pi
+
+1. Build and install the `pyrealsense2` package by following the instructions in the [pi-realsense.md](raspberry/pi-realsense.md) guide. you should obtain a `pyrealsense2.so` file after building.
+2. Create a wheel 
+
+# Using UV with System Packages
+
+Since `pyrealsense2` is compiled and installed in the system Python packages (not available via PyPI), the project includes a `uv.toml` configuration file that enables access to system packages:
+
+```toml
+# uv.toml
+[pip]
+system = true
+```
+
+This configuration allows UV's virtual environment to access the manually compiled `pyrealsense2` module. Simply use UV commands normally:
+
+```bash
+# Sync dependencies
+uv sync
+
+# Run Python scripts
+uv run camera/canne_depth_mvp.py
+
+# Or enter a Python shell
+uv run python3
+```
+
 # Setting Up Your Projects
 
 In this guide, we will cover how to use `uv`, a tool for managing Python environments and packages, on your Raspberry Pi.

@@ -1,0 +1,6 @@
+# UV configuration for Raspberry Pi
+# This allows the virtual environment to access system-installed packages
+# like pyrealsense2 which is compiled manually
+
+[pip]
+system = true
