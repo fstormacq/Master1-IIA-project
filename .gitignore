@@ -206,3 +206,37 @@ marimo/_lsp/
 __marimo__/
 
 .DS_Store
+
+# LaTeX build artifacts (auxiliaires du .tex)
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+*.idx
+*.ilg
+*.ind
+*.synctex.gz
+*.fdb_latexmk
+*.run.xml
+*.bcf
+*.spl
+*.bbl
+*.blg
+*.brf
+*.nav
+*.snm
+*.vrb
+*.dvi
+*.xdv
+_minted-*/ 
+*.synctex
+*~
+*.tex~ 
+*.cut
