@@ -1,11 +1,15 @@
+#note a faire changer les noms des variables en francais pour etre cohérent avec le reste du code
+#note changer le gauhe droite devant car le gauche est devant le milieu est guche et droite est droite 
+#prendre en compte que seul la zone au milieu est prise en compte pour le mode si il y'a du dangerq
+
 import pyrealsense2 as rs
 import numpy as np 
 import cv2
 from collections import deque
 
 
-Distance_Area_Attention = 1.0
-Distance_Area_Alert = 2.0
+Distance_Area_Attention = 2.0
+Distance_Area_Alert = 1.0
 Nbr_frames_max_history = 5     
 Rectangle_Margin_Y = 0.10
 Rectangle_Margin_X = 0.10
@@ -35,10 +39,11 @@ def median_calculator(zone_pixels):
 def Danger_zone(distance):
     if np.isnan(distance):
         return "paisible"
-    if distance < Distance_Area_Attention:
-        return "attention"
     if distance < Distance_Area_Alert:
-        return "alerte"
+        return "alerte y a un truc a moins d 1 metre"
+    if distance <= Distance_Area_Attention:
+        return "attention y a un truc a moins d 2 metre"
+    
     return "paisible"
 
 # Main loop that captures frames and process them and display the results of the mode and the direction of the obstacle
@@ -87,18 +92,18 @@ try:
             obstacle_info = ' et '.join(obstacle)
 
         avoid_danger = max(distance, key=lambda k: np.nan_to_num(distance[k], nan=-1.0)) 
-        
-        #depth_vis = cv2.convertScaleAbs(depth, alpha=0.03) 
-        #depth_vis = cv2.applyColorMap(depth_vis, cv2.COLORMAP_JET) 
-        #cv2.rectangle(depth_vis, (x1, y1), (x2, y2), (255,255,255), 2) 
+        """
+        depth_vis = cv2.convertScaleAbs(depth, alpha=0.03) 
+        depth_vis = cv2.applyColorMap(depth_vis, cv2.COLORMAP_JET) 
+        cv2.rectangle(depth_vis, (x1, y1), (x2, y2), (255,255,255), 2) 
         #cv2.putText(depth_vis, f"Devant toi {mode} Obstacle: {obstacle} Eviter: {avoid_danger}", (10,30),cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2) 
-        #cv2.putText(depth_vis,f"Devant toi {mode}   Obstacles: {obstacle_info}   Eviter: {avoid_danger}",(10,30),cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,255), 2)
+        cv2.putText(depth_vis,f"Devant toi {mode}   Obstacles: {obstacle_info}   Eviter: {avoid_danger}",(10,30),cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,255), 2)
 
-        #cv2.imshow("Depth (D435)", depth_vis) 
+        cv2.imshow("Depth (D435)", depth_vis) 
 
-        #if cv2.waitKey(1) & 0xFF == ord('q'):  
-            #break
-
+        if cv2.waitKey(1) & 0xFF == ord('q'):  
+            break
+            """
         print(f"Au centre: {mode}, Obstacle: {obstacle_info}, Aller: {avoid_danger}, Distances: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m")
 
 except KeyboardInterrupt:
