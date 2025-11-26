@@ -38,6 +38,8 @@ def heavy_audio_processing(chunk):
     # Spectral analysis
     fft_result = np.fft.fft(chunk)
     dominant_freq = np.argmax(np.abs(fft_result[:len(fft_result)//2]))
+
+    print(f"Audio Processing - RMS: {rms:.5f}, dB: {niveau_db:.2f}, Class: {sound_label}, Freq: {dominant_freq} Hz")
     
     return {
         'rms': rms,
