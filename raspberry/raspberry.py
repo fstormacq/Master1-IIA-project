@@ -89,10 +89,10 @@ def start_processing():
     print("Starting processing threads...")
     
     processing_thread = threading.Thread(target=sensor_processing_thread, daemon=True)
-    arduino_thread = threading.Thread(target=arduino_communication_thread, daemon=True)
+    # arduino_thread = threading.Thread(target=arduino_communication_thread, daemon=True)
     
     processing_thread.start()
-    arduino_thread.start()
+    # arduino_thread.start()
     
     # Keep main thread alive
     try:
