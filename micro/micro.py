@@ -1,7 +1,7 @@
 import numpy as np
 import sounddevice as sd
 import time
-from queue_manager import queue_manager, DataType
+from queue_manager import queue_manager
 
 DEVICE_NAME = "USB PnP Sound Device"
 CHUNK_DURATION = 0.1
@@ -11,7 +11,6 @@ CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)
 audio_buffer = []
 audio_running = False
 
-
 def audio_callback(indata, frames, time_info, status):
     global audio_buffer
     audio_buffer.extend(indata.flatten())
@@ -19,7 +18,7 @@ def audio_callback(indata, frames, time_info, status):
     while len(audio_buffer) >= CHUNK_SIZE:
         chunk = np.array(audio_buffer[:CHUNK_SIZE])
         audio_buffer = audio_buffer[CHUNK_SIZE:]
-        queue_manager.put_sensor_data(DataType.MICRO_DATA, chunk)
+        queue_manager.put_micro_data(chunk)
 
 
 def start_audio_capture(device_id=None):

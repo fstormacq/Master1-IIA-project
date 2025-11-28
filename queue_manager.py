@@ -1,51 +1,132 @@
-from queue import Queue
+from queue import Queue, Full, Empty
 from typing import Any
-from enum import IntEnum
-
-class DataType(IntEnum):
-    """Index to identify data types in the queue"""
-    MICRO_DATA = 0
-    CAMERA_DATA = 1
-    # Add other types as needed
+import time
 
 class QueueManager:
-    """Centralized manager for shared queues"""
+    """Gestionnaire centralisé des queues partagées - Queues séparées"""
     
     def __init__(self):
-        # Main queue for raw sensor data
-        self.sensor_queue = Queue(maxsize=50)
+        # Queue séparée pour les données audio du microphone
+        self.micro_queue = Queue(maxsize=10)
         
-        # Queue for processed data to send to Arduino
-        self.arduino_queue = Queue(maxsize=30)
+        # Queue séparée pour les données vidéo de la caméra
+        self.video_queue = Queue(maxsize=10)
         
-    def put_sensor_data(self, data_type: int, data: Any):
-        """Add sensor data with its type"""
+        # Queue pour données traitées à envoyer à l'Arduino
+        self.arduino_queue = Queue(maxsize=5)
+        
+        # Monitoring
+        self.dropped_micro_count = 0
+        self.dropped_video_count = 0
+        self.dropped_arduino_count = 0
+        self.total_micro_count = 0
+        self.total_video_count = 0
+        self.total_arduino_count = 0
+        
+    def put_micro_data(self, data: Any):
+        """Ajouter des données microphone"""
+        self.total_micro_count += 1
+        
         try:
-            self.sensor_queue.put_nowait((data_type, data))
-        except:
-            # Drop half of the oldest data if queue is full
-            print("Queue full, dropping oldest sensor data")
-            for i in range(5):
-                self.sensor_queue.get_nowait()
-            self.sensor_queue.put_nowait((data_type, data))
+            self.micro_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_micro_count += 1
+            print(f"MICRO Queue full! Dropped: {self.dropped_micro_count}/{self.total_micro_count}")
+            
+            # Drop oldest data
+            for i in range(min(3, self.micro_queue.qsize())):
+                try:
+                    self.micro_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.micro_queue.put_nowait((data, time.time()))
+            except Full:
+                print("Micro queue still full!")
     
-    def get_sensor_data(self, timeout=1.0):
-        """Retrieve sensor data"""
-        return self.sensor_queue.get(timeout=timeout)
+    def get_micro_data(self, timeout=1.0):
+        """Récupérer des données microphone"""
+        result = self.micro_queue.get(timeout=timeout)
+        return result[0] if isinstance(result, tuple) else result
+    
+    def put_video_data(self, data: Any):
+        """Ajouter des données vidéo"""
+        self.total_video_count += 1
+        
+        try:
+            self.video_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_video_count += 1
+            print(f"VIDEO Queue full! Dropped: {self.dropped_video_count}/{self.total_video_count}")
+            
+            # Drop oldest data
+            for i in range(min(3, self.video_queue.qsize())):
+                try:
+                    self.video_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.video_queue.put_nowait((data, time.time()))
+            except Full:
+                print("Video queue still full!")
+    
+    def get_video_data(self, timeout=1.0):
+        """Récupérer des données vidéo"""
+        result = self.video_queue.get(timeout=timeout)
+        return result[0] if isinstance(result, tuple) else result
     
     def put_arduino_data(self, command: Any):
-        """Add commands for Arduino"""
+        """Ajouter des commandes pour l'Arduino"""
+        self.total_arduino_count += 1
+        
         try:
-            self.arduino_queue.put_nowait(command)
-        except:
-            # Drop half of the oldest commands if queue is full
-            for i in range(5):
-                self.arduino_queue.get_nowait()
-            self.arduino_queue.put_nowait(command)
+            self.arduino_queue.put_nowait((command, time.time()))
+        except Full:
+            self.dropped_arduino_count += 1
+            print(f"ARDUINO Queue full! Dropped: {self.dropped_arduino_count}/{self.total_arduino_count}")
+            
+            for i in range(min(2, self.arduino_queue.qsize())):
+                try:
+                    self.arduino_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.arduino_queue.put_nowait((command, time.time()))
+            except Full:
+                print("Arduino queue still full!")
     
     def get_arduino_data(self, timeout=1.0):
-        """Retrieve commands for Arduino"""
-        return self.arduino_queue.get(timeout=timeout)
+        """Récupérer des commandes pour l'Arduino"""
+        result = self.arduino_queue.get(timeout=timeout)
+        return result[0] if isinstance(result, tuple) else result
+    
+    def get_queue_stats(self):
+        """Obtenir les statistiques des queues"""
+        return {
+            'micro_queue_size': self.micro_queue.qsize(),
+            'video_queue_size': self.video_queue.qsize(),
+            'arduino_queue_size': self.arduino_queue.qsize(),
+            'micro_dropped': self.dropped_micro_count,
+            'video_dropped': self.dropped_video_count,
+            'arduino_dropped': self.dropped_arduino_count,
+            'micro_total': self.total_micro_count,
+            'video_total': self.total_video_count,
+            'arduino_total': self.total_arduino_count,
+            'micro_drop_rate': self.dropped_micro_count / max(1, self.total_micro_count) * 100,
+            'video_drop_rate': self.dropped_video_count / max(1, self.total_video_count) * 100,
+            'arduino_drop_rate': self.dropped_arduino_count / max(1, self.total_arduino_count) * 100
+        }
+    
+    def print_stats(self):
+        """Afficher les statistiques actuelles"""
+        stats = self.get_queue_stats()
+        print(f"\n📊 Queue Stats:")
+        print(f"  Micro: {stats['micro_queue_size']}/10 items, {stats['micro_drop_rate']:.1f}% dropped")
+        print(f"  Video: {stats['video_queue_size']}/10 items, {stats['video_drop_rate']:.1f}% dropped")
+        print(f"  Arduino: {stats['arduino_queue_size']}/5 items, {stats['arduino_drop_rate']:.1f}% dropped")
 
-# Global shared instance
+# Instance globale partagée
 queue_manager = QueueManager()

@@ -4,7 +4,7 @@
 
 #import pour la caméra , numpy pour les valeur de tableaux et calculs , 
 #cv2 pour affichage et conversion image et deque pour effacer historique et tjrs garder la derniere image
-import pyrealsense2 as rs
+import pyrealsense2 as rs # type: ignore
 import numpy as np
 import cv2
 from collections import deque
