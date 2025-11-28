@@ -16,7 +16,7 @@ Rectangle_Margin_Y = 0.10
 Rectangle_Margin_X = 0.10
 W = 640
 H = 480
-FPS = 10 
+FPS = 30  # Retour au FPS original qui fonctionne
 
 # Variables globales pour le système
 camera_running = False
@@ -27,24 +27,18 @@ use_simulation = False  # Flag pour utiliser la simulation si RealSense indispon
 def check_realsense_available():
     """Vérifier si une caméra RealSense est disponible"""
     try:
-        ctx = rs.context()
-        devices = ctx.query_devices()
-        if len(devices) == 0:
-            return False
-        
-        # Tester la configuration
+        # Utiliser la même méthode que canne_depth_mvp.py
         test_pipeline = rs.pipeline()
         test_config = rs.config()
         test_config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS)
         
-        try:
-            test_pipeline.start(test_config)
-            test_pipeline.stop()
-            return True
-        except Exception:
-            return False
-            
-    except Exception:
+        # Essayer de démarrer directement comme dans le code qui marche
+        profile = test_pipeline.start(test_config)
+        test_pipeline.stop()
+        return True
+        
+    except Exception as e:
+        print(f"RealSense detection error: {e}")
         return False
 
 def simulate_realsense_data():
@@ -73,25 +67,6 @@ def median_calculator(zone_pixels):
     if use_simulation:
         return np.random.uniform(1.0, 4.0)  # Distance simulée
         
-    array = zone_pixels.astype(np.float32) * depth_scale 
-    valid_array = array[array > 0] 
-    if valid_array.size == 0: 
-        return np.nan 
-    return float(np.median(valid_array))
-
-# Give the mode according to the distance
-def Danger_zone(distance):
-    if np.isnan(distance):
-        return "paisible"
-    if distance < Distance_Area_Alert:
-        return "alerte y a un truc a moins d 1 metre"
-    if distance <= Distance_Area_Attention:
-        return "attention y a un truc a moins d 2 metre"
-    
-    return "paisible"
-
-# function that gives the median distance in meters for a given area
-def median_calculator(zone_pixels): 
     array = zone_pixels.astype(np.float32) * depth_scale 
     valid_array = array[array > 0] 
     if valid_array.size == 0: 
@@ -176,13 +151,14 @@ def start_video_capture():
     
     try:
         if not use_simulation:
-            # Mode RealSense
+            # Mode RealSense - utiliser la même initialisation que canne_depth_mvp.py
             pipeline = rs.pipeline() 
             config = rs.config() 
             config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS) 
             
-            camera = pipeline.start(config) 
-            depth_scale = camera.get_device().first_depth_sensor().get_depth_scale()
+            # Utiliser la même méthode que le code qui marche
+            profile = pipeline.start(config) 
+            depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
             print(f"   Depth scale: {depth_scale}")
         else:
             # Mode simulation
