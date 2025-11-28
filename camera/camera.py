@@ -16,7 +16,7 @@ Rectangle_Margin_Y = 0.10
 Rectangle_Margin_X = 0.10
 W = 640
 H = 480
-FPS = 30  # Retour au FPS original qui fonctionne
+FPS = 10  # Retour au FPS original qui fonctionne
 
 # Variables globales pour le système
 camera_running = False
