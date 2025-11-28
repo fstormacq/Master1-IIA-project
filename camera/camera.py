@@ -22,9 +22,57 @@ FPS = 10
 camera_running = False
 pipeline = None
 depth_scale = None
+use_simulation = False  # Flag pour utiliser la simulation si RealSense indisponible
+
+def check_realsense_available():
+    """Vérifier si une caméra RealSense est disponible"""
+    try:
+        ctx = rs.context()
+        devices = ctx.query_devices()
+        if len(devices) == 0:
+            return False
+        
+        # Tester la configuration
+        test_pipeline = rs.pipeline()
+        test_config = rs.config()
+        test_config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS)
+        
+        try:
+            test_pipeline.start(test_config)
+            test_pipeline.stop()
+            return True
+        except Exception:
+            return False
+            
+    except Exception:
+        return False
+
+def simulate_realsense_data():
+    """Simuler des données RealSense quand la caméra n'est pas disponible"""
+    # Créer des données de profondeur simulées
+    # Distances aléatoires entre 0.5m et 5m
+    center_dist = np.random.uniform(1.5, 4.0)  # Centre
+    left_dist = np.random.uniform(1.0, 3.5)    # Gauche  
+    right_dist = np.random.uniform(1.2, 4.2)   # Droite
+    
+    # Ajouter parfois des obstacles proches
+    if np.random.random() < 0.1:  # 10% de chance
+        center_dist = np.random.uniform(0.3, 0.9)  # Obstacle proche
+    
+    return {
+        'distances': {
+            'gauche': left_dist,
+            'centre': center_dist,
+            'droite': right_dist
+        },
+        'timestamp': time.time()
+    }
 
 # function that gives the median distance in meters for a given area
 def median_calculator(zone_pixels): 
+    if use_simulation:
+        return np.random.uniform(1.0, 4.0)  # Distance simulée
+        
     array = zone_pixels.astype(np.float32) * depth_scale 
     valid_array = array[array > 0] 
     if valid_array.size == 0: 
@@ -63,6 +111,17 @@ def Danger_zone(distance):
 
 def process_frame(depth_frame):
     """Traiter une frame et retourner les données analysées"""
+    if use_simulation:
+        # Mode simulation - retourner des données factices
+        sim_data = simulate_realsense_data()
+        return {
+            'raw_depth': None,
+            'distances': sim_data['distances'],
+            'zones': None,
+            'timestamp': sim_data['timestamp']
+        }
+    
+    # Mode RealSense normal
     depth = np.asanyarray(depth_frame.get_data()) 
     h, w = depth.shape 
     y1, y2 = int(Rectangle_Margin_Y*h), int((1-Rectangle_Margin_Y)*h)        
@@ -93,8 +152,8 @@ def process_frame(depth_frame):
     }
 
 def start_video_capture():
-    """Fonction principale de capture vidéo avec RealSense"""
-    global camera_running, pipeline, depth_scale
+    """Fonction principale de capture vidéo avec RealSense ou simulation"""
+    global camera_running, pipeline, depth_scale, use_simulation
     
     if camera_running:
         print("Camera already running, skipping.")
@@ -102,19 +161,33 @@ def start_video_capture():
     
     camera_running = True
     
-    print("📹 Starting RealSense camera capture...")
+    # Vérifier si RealSense est disponible
+    realsense_available = check_realsense_available()
+    
+    if realsense_available:
+        print("📹 Starting RealSense camera capture...")
+        use_simulation = False
+    else:
+        print("⚠️  RealSense not available - using simulation mode")
+        use_simulation = True
+    
     print(f"   Resolution: {W}x{H}")
     print(f"   FPS: {FPS}")
     
-    # Initialisation du pipeline
-    pipeline = rs.pipeline() 
-    config = rs.config() 
-    config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS) 
-    
     try:
-        camera = pipeline.start(config) 
-        depth_scale = camera.get_device().first_depth_sensor().get_depth_scale()
-        print(f"   Depth scale: {depth_scale}")
+        if not use_simulation:
+            # Mode RealSense
+            pipeline = rs.pipeline() 
+            config = rs.config() 
+            config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS) 
+            
+            camera = pipeline.start(config) 
+            depth_scale = camera.get_device().first_depth_sensor().get_depth_scale()
+            print(f"   Depth scale: {depth_scale}")
+        else:
+            # Mode simulation
+            depth_scale = 0.001  # Valeur par défaut
+            print("   Using simulated depth data")
         
         # Historiques pour le lissage
         history_center = deque(maxlen=Nbr_frames_max_history)  
@@ -127,15 +200,19 @@ def start_video_capture():
         print("🎬 Camera capture started...")
         
         while camera_running:
-            frame = pipeline.wait_for_frames() 
-            depth_frame = frame.get_depth_frame() 
-            if not depth_frame:
-                continue
+            if use_simulation:
+                # Mode simulation - générer des données
+                frame_data = process_frame(None)
+                time.sleep(1.0/FPS)  # Respecter le framerate
+            else:
+                # Mode RealSense normal
+                frame = pipeline.wait_for_frames() 
+                depth_frame = frame.get_depth_frame() 
+                if not depth_frame:
+                    continue
+                frame_data = process_frame(depth_frame)
                 
             frame_count += 1
-            
-            # Traiter la frame
-            frame_data = process_frame(depth_frame)
             
             # Ajouter à l'historique pour le lissage
             history_left.append(frame_data['distances']['gauche'])
@@ -181,7 +258,8 @@ def start_video_capture():
                     'droite': distance_right_smooth
                 },
                 'obstacles': obstacle,
-                'timestamp': frame_data['timestamp']
+                'timestamp': frame_data['timestamp'],
+                'simulation_mode': use_simulation
             }
             
             # Envoyer à la queue
@@ -189,13 +267,15 @@ def start_video_capture():
             
             # Debug: afficher les premières frames
             if frame_count <= 5 or frame_count % 50 == 0:
-                print(f"📦 Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
+                sim_tag = "[SIM] " if use_simulation else ""
+                print(f"📦 {sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
             
             # Stats périodiques
             elapsed = time.time() - start_time
             if elapsed > 0 and frame_count % 100 == 0:
                 fps = frame_count / elapsed
-                print(f"📊 Video: {frame_count} frames in {elapsed:.1f}s ({fps:.1f} FPS)")
+                sim_tag = "[SIMULATION] " if use_simulation else ""
+                print(f"📊 {sim_tag}Video: {frame_count} frames in {elapsed:.1f}s ({fps:.1f} FPS)")
                 print(f"     Current: {mode}, Distances: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m")
         
     except KeyboardInterrupt:
@@ -205,10 +285,14 @@ def start_video_capture():
         import traceback
         traceback.print_exc()
     finally:
-        if pipeline:
-            pipeline.stop()
+        if pipeline and not use_simulation:
+            try:
+                pipeline.stop()
+            except Exception as e:
+                print(f"Warning: Error stopping pipeline: {e}")
         camera_running = False
-        print(f"📹 Camera stopped. Total frames: {frame_count}")
+        sim_tag = "[SIMULATION] " if use_simulation else ""
+        print(f"📹 {sim_tag}Camera stopped. Total frames: {frame_count}")
 
 # Pour les tests individuels
 if __name__ == "__main__":
