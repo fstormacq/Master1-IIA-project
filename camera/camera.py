@@ -16,7 +16,7 @@ Rectangle_Margin_Y = 0.10
 Rectangle_Margin_X = 0.10
 W = 640
 H = 480
-FPS = 10  # Retour au FPS original qui fonctionne
+FPS = 15
 
 # Variables globales pour le système
 camera_running = False
@@ -27,13 +27,15 @@ use_simulation = False  # Flag pour utiliser la simulation si RealSense indispon
 def check_realsense_available():
     """Vérifier si une caméra RealSense est disponible"""
     try:
-        # Utiliser la même méthode que canne_depth_mvp.py
+        # Utiliser exactement la même méthode que camera_initial.py
         test_pipeline = rs.pipeline()
         test_config = rs.config()
         test_config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS)
         
-        # Essayer de démarrer directement comme dans le code qui marche
-        profile = test_pipeline.start(test_config)
+        # Démarrer comme dans camera_initial.py
+        camera = test_pipeline.start(test_config)
+        # Vérifier qu'on peut obtenir le depth_scale (signe que la caméra fonctionne)
+        test_depth_scale = camera.get_device().first_depth_sensor().get_depth_scale()
         test_pipeline.stop()
         return True
         
@@ -151,14 +153,14 @@ def start_video_capture():
     
     try:
         if not use_simulation:
-            # Mode RealSense - utiliser la même initialisation que canne_depth_mvp.py
+            # Mode RealSense - utiliser exactement la même initialisation que camera_initial.py
             pipeline = rs.pipeline() 
             config = rs.config() 
             config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS) 
             
-            # Utiliser la même méthode que le code qui marche
-            profile = pipeline.start(config) 
-            depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
+            # Utiliser exactement la même méthode que camera_initial.py qui fonctionne
+            camera = pipeline.start(config) 
+            depth_scale = camera.get_device().first_depth_sensor().get_depth_scale()
             print(f"   Depth scale: {depth_scale}")
         else:
             # Mode simulation
