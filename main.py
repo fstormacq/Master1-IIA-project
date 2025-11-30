@@ -43,11 +43,13 @@ def main(no_audio, no_video, debug):
     
     print("Starting all threads...")
     
-    audio_thread.start()
-    print("     Audio producer started")
+    if not no_audio:
+        audio_thread.start()
+        print("     Audio producer started")
     
-    video_thread.start()
-    print("     Video producer started")
+    if not no_video:
+        video_thread.start()
+        print("     Video producer started")
     
     processing_thread.start()
     print("     Processing threads started")
