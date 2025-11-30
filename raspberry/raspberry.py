@@ -12,7 +12,19 @@ from queue import Empty
 from queue_manager import queue_manager
 
 def heavy_audio_processing(chunk):
-    """Heavy processing for audio data"""
+    '''
+    Heavy processing for microphone audio data.
+
+    Parameters
+    ----------
+    chunk : np.ndarray
+        The audio data chunk to be processed
+
+    Returns
+    -------
+    dict
+        The processing results including RMS, dB level, classification, dominant frequency, and timestamp
+    '''
 
     rms = np.sqrt(np.mean(chunk**2))
     
@@ -35,7 +47,7 @@ def heavy_audio_processing(chunk):
     else:
         sound_label = "Danger"
     
-    # Spectral analysis
+    # Main frequency detection
     fft_result = np.fft.fft(chunk)
     dominant_freq = np.argmax(np.abs(fft_result[:len(fft_result)//2]))
 
@@ -50,9 +62,24 @@ def heavy_audio_processing(chunk):
     }
 
 def heavy_video_processing(video_data):
-    """Heavy processing pour les données vidéo RealSense"""
-    # Les données arrivent déjà analysées depuis camera.py
-    # On peut faire du traitement supplémentaire ici
+    """
+    Heavy processing for video data.
+
+    Parameters
+    ----------
+    video_data : dict
+        The video data to be processed
+
+    Returns
+    -------
+    dict
+        The processing results including mode, obstacle info, avoid direction, danger level, risk classification,
+        distances, obstacles count, frame number, and timestamp
+
+    Notes
+    -----
+    The video data needs to arrive pre-processed with obstacle detection and distance estimation.
+    """
     
     mode = video_data['mode']
     obstacles = video_data['obstacles']
@@ -76,6 +103,7 @@ def heavy_video_processing(video_data):
     elif danger_level == 1:
         risk_classification = "medium"
     
+    # Need to minimize the data sent to Arduino
     return {
         'mode': mode,
         'obstacle_info': video_data['obstacle_info'],
@@ -89,12 +117,18 @@ def heavy_video_processing(video_data):
     }
 
 def micro_processing_thread():
-    """Thread dédié au traitement audio"""
+    """
+    Processing thread dedicated to microphone audio data
+
+    Notes
+    -----
+    This thread continuously fetches audio data from the queue, processes it, and sends commands to the Arduino based on the results.
+    """
     processing_count = 0
     
     while True:
         try:
-            chunk = queue_manager.get_micro_data(timeout=1.0)
+            chunk = queue_manager.get_micro_data()
             processing_count += 1
             
             # Traitement audio lourd
@@ -120,7 +154,13 @@ def micro_processing_thread():
             print(f"Micro processing error: {e}")
 
 def video_processing_thread():
-    """Thread dédié au traitement vidéo"""
+    """
+    Processing thread dedicated to video data
+
+    Notes
+    -----
+    This thread continuously fetches video data from the queue, processes it, and sends commands to the Arduino based on the results.
+    """
     processing_count = 0
     
     while True:
@@ -128,10 +168,8 @@ def video_processing_thread():
             video_data = queue_manager.get_video_data(timeout=1.0)
             processing_count += 1
             
-            # Traitement vidéo lourd
             result = heavy_video_processing(video_data)
-            
-            # Commande Arduino pour la vidéo
+
             arduino_command = {
                 'type': 'vision_alert',
                 'mode': result['mode'],
@@ -141,12 +179,11 @@ def video_processing_thread():
                 'avoid_direction': result['avoid_direction'],
                 'distances': result['distances']
             }
+            
             queue_manager.put_arduino_data(arduino_command)
             
-            # Debug
-            if processing_count % 10 == 0:
-                distances = result['distances']
-                print(f"📹 Video #{processing_count}: {result['mode']} | Obstacles: {result['obstacle_info']} | "
+            distances = result['distances']
+            print(f"📹 Video #{processing_count}: {result['mode']} | Obstacles: {result['obstacle_info']} | "
                       f"G={distances['gauche']:.2f}m C={distances['centre']:.2f}m D={distances['droite']:.2f}m")
                 
         except Empty:
@@ -154,13 +191,14 @@ def video_processing_thread():
         except Exception as e:
             print(f"Video processing error: {e}")
 
-def sensor_processing_thread():
-    """Thread for sensor data processing - DEPRECATED"""
-    # Cette fonction est maintenant remplacée par micro_processing_thread et video_processing_thread
-    pass
-
 def arduino_communication_thread():
-    """Thread for Arduino communication"""
+    """
+    Processing thread dedicated to Arduino communication
+
+    Notes
+    -----
+    This thread continuously fetches commands from the queue and sends them to the Arduino.
+    """
     while True:
         try:
             command = queue_manager.get_arduino_data(timeout=1.0)
@@ -173,28 +211,26 @@ def arduino_communication_thread():
             print(f"Arduino communication error: {e}")
 
 def start_processing():
-    """Fonction pour démarrer tous les threads de traitement"""
+    """
+    Function to start all processing threads
+    """
     print("Starting processing threads...")
     
-    # Thread pour traitement audio
     micro_thread = threading.Thread(target=micro_processing_thread, daemon=True)
     
-    # Thread pour traitement vidéo
     video_thread = threading.Thread(target=video_processing_thread, daemon=True)
     
-    # Thread pour communication Arduino
     arduino_thread = threading.Thread(target=arduino_communication_thread, daemon=True)
     
     micro_thread.start()
-    print("✅ Micro processing thread started")
+    print("Micro processing thread started")
     
     video_thread.start()
-    print("✅ Video processing thread started")
+    print("Video processing thread started")
     
     arduino_thread.start()
-    print("✅ Arduino communication thread started")
+    print("Arduino communication thread started")
     
-    # Garder ce thread actif et afficher les stats
     try:
         while True:
             time.sleep(5)

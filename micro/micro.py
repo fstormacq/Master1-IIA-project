@@ -4,7 +4,7 @@ import time
 from queue_manager import queue_manager
 
 DEVICE_NAME = "USB PnP Sound Device"
-CHUNK_DURATION = 0.1
+CHUNK_DURATION = 1.0 / 15 
 SAMPLE_RATE = 44100
 CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)
 
@@ -12,6 +12,20 @@ audio_buffer = []
 audio_running = False
 
 def audio_callback(indata, frames, time_info, status):
+    """
+    Callback function for audio input stream.
+
+    Parameters
+    ----------
+    indata : np.ndarray
+        The recorded audio data
+    frames : int
+        Number of frames
+    time_info : dict
+        Time information
+    status : sd.CallbackFlags
+        Status of the audio stream
+    """
     global audio_buffer
     audio_buffer.extend(indata.flatten())
 
@@ -22,6 +36,14 @@ def audio_callback(indata, frames, time_info, status):
 
 
 def start_audio_capture(device_id=None):
+    """
+    Start capturing audio from the specified device.
+
+    Parameters
+    ----------
+    device_id : int or None
+        The ID of the audio input device to use. If None, the default device is used.
+    """
     global audio_running
 
     if audio_running:
@@ -32,12 +54,7 @@ def start_audio_capture(device_id=None):
 
     print(f"Starting audio capture on device {device_id}...")
 
-    with sd.InputStream(device=device_id,
-                        channels=1,
-                        samplerate=SAMPLE_RATE,
-                        blocksize=2048,
-                        callback=audio_callback):
-
+    with sd.InputStream(device=device_id, channels=1, samplerate=SAMPLE_RATE, blocksize=2048, callback=audio_callback):
         try:
             while True:
                 time.sleep(0.1)
@@ -51,6 +68,7 @@ def start_audio_capture(device_id=None):
 
 if __name__ == "__main__":
     devices = sd.query_devices() 
+    
     device_id = None
     for i, dev in enumerate(devices):
         if dev['max_input_channels'] > 0 and DEVICE_NAME in dev['name']:
@@ -61,5 +79,4 @@ if __name__ == "__main__":
         raise RuntimeError(f"{DEVICE_NAME} can't be found.")
     
     sd.default.device = (device_id, None)
-
     start_audio_capture(device_id)

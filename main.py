@@ -17,15 +17,15 @@ def main():
 
     print("Starting Raspberry Pi system with separate queues...")
     
-    # Thread producteur audio
+    # Producer thread audio
     print("Starting audio producer...")
     audio_thread = threading.Thread(target=start_audio_capture, daemon=True)
     
-    # Thread producteur vidéo  
+    # Producer thread video  
     print("Starting video producer...")
     video_thread = threading.Thread(target=start_video_capture, daemon=True)
     
-    # Thread consommateur (traitement)
+    # Consumer thread (processing)
     print("Starting processing threads...")
     processing_thread = threading.Thread(target=start_processing, daemon=True)
     
@@ -42,7 +42,7 @@ def main():
     
     print("All systems started. Press Ctrl+C to stop.")
     
-    # Debug initial
+    # Inspect thread status after a short delay
     time.sleep(2)
     print(f"\nThread status:")
     print(f"   Audio: {'alive' if audio_thread.is_alive() else 'DEAD'}")
