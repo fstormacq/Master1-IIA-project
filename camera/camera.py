@@ -174,9 +174,14 @@ def process_frame(depth_frame):
         'timestamp': time.time()
     }
 
-def start_video_capture():
+def start_video_capture(debug=False):
     """
     Start capturing video from the RealSense camera or simulate data if not available.
+
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Notes
     -----
@@ -186,7 +191,8 @@ def start_video_capture():
     global CAMERA_RUNNING, PIPELINE, DEPTH_SCALE, USE_SIMULATION
     
     if CAMERA_RUNNING:
-        print("Camera already running, skipping.")
+        if debug:
+            print("Camera already running, skipping.")
         return
     
     CAMERA_RUNNING = True
@@ -227,7 +233,8 @@ def start_video_capture():
         frame_count = 0
         start_time = time.time()
         
-        print("Camera capture started...")
+        if debug:
+            print("Camera capture started...")
         
         while CAMERA_RUNNING:
             if USE_SIMULATION:
@@ -237,7 +244,8 @@ def start_video_capture():
                 frame = PIPELINE.wait_for_frames() 
                 depth_frame = frame.get_depth_frame() 
                 if not depth_frame:
-                    print('[DEBUG] No depth frame received, skipping...')
+                    if debug:
+                        print('[DEBUG] No depth frame received, skipping...')
                     continue
                 frame_data = process_frame(depth_frame)
                 
@@ -290,16 +298,18 @@ def start_video_capture():
 
             queue_manager.put_video_data(video_data)
             
-            sim_tag = "[SIM] " if USE_SIMULATION else ""
-            print(f"📦 {sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
+            if debug:
+                sim_tag = "[SIM] " if USE_SIMULATION else ""
+                print(f"{sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
             
             # Periodic stats - made with github copilot
-            elapsed = time.time() - start_time
-            if elapsed > 0 and frame_count % 100 == 0:
-                fps = frame_count / elapsed
-                sim_tag = "[SIMULATION] " if USE_SIMULATION else ""
-                print(f"📊 {sim_tag}Video: {frame_count} frames in {elapsed:.1f}s ({fps:.1f} FPS)")
-                print(f"     Current: {mode}, Distances: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m")
+            if debug:
+                elapsed = time.time() - start_time
+                if elapsed > 0 and frame_count % 100 == 0:
+                    fps = frame_count / elapsed
+                    sim_tag = "[SIMULATION] " if USE_SIMULATION else ""
+                    print(f"{sim_tag}Video: {frame_count} frames in {elapsed:.1f}s ({fps:.1f} FPS)")
+                    print(f"     Current: {mode}, Distances: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m")
         
     except KeyboardInterrupt:
         print("\nCamera capture stopped by user")
@@ -313,12 +323,13 @@ def start_video_capture():
             except Exception as e:
                 print(f"Warning: Error stopping pipeline: {e}")
         CAMERA_RUNNING = False
-        sim_tag = "[SIMULATION] " if USE_SIMULATION else ""
-        print(f"📹 {sim_tag}Camera stopped. Total frames: {frame_count}")
+        if debug:
+            sim_tag = "[SIMULATION] " if USE_SIMULATION else ""
+            print(f"{sim_tag}Camera stopped. Total frames: {frame_count}")
 
 # Pour les tests individuels
 if __name__ == "__main__":
     try:
         start_video_capture()
     except KeyboardInterrupt:
-        print("Camera test stopped")
+        print("Camera stopped")

@@ -35,7 +35,7 @@ def audio_callback(indata, frames, time_info, status):
         queue_manager.put_micro_data(chunk)
 
 
-def start_audio_capture(device_id=None):
+def start_audio_capture(device_id=None, debug=False):
     """
     Start capturing audio from the specified device.
 
@@ -43,16 +43,20 @@ def start_audio_capture(device_id=None):
     ----------
     device_id : int or None
         The ID of the audio input device to use. If None, the default device is used.
+    debug : bool
+        If True, enables debug mode with verbose logging.   
     """
     global audio_running
 
     if audio_running:
-        print("Audio capture already running, skipping second start.")
+        if debug:
+            print("Audio capture already running, skipping second start.")
         return
 
     audio_running = True
 
-    print(f"Starting audio capture on device {device_id}...")
+    if debug:
+        print(f"Starting audio capture on device {device_id}...")
 
     with sd.InputStream(device=device_id, channels=1, samplerate=SAMPLE_RATE, blocksize=2048, callback=audio_callback):
         try:

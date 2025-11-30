@@ -116,9 +116,14 @@ def heavy_video_processing(video_data):
         'timestamp': video_data['timestamp']
     }
 
-def micro_processing_thread():
+def micro_processing_thread(debug=False):
     """
     Processing thread dedicated to microphone audio data
+
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Notes
     -----
@@ -145,17 +150,22 @@ def micro_processing_thread():
             queue_manager.put_arduino_data(arduino_command)
             
             # Debug
-            if processing_count % 20 == 0:
-                print(f"🎤 Audio #{processing_count}: {result['db_level']:.1f}dB - {result['sound_classification']}")
+            if debug:
+                print(f"Audio #{processing_count}: {result['db_level']:.1f}dB - {result['sound_classification']}")
                 
         except Empty:
             continue
         except Exception as e:
             print(f"Micro processing error: {e}")
 
-def video_processing_thread():
+def video_processing_thread(debug=False):
     """
     Processing thread dedicated to video data
+
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Notes
     -----
@@ -182,18 +192,24 @@ def video_processing_thread():
             
             queue_manager.put_arduino_data(arduino_command)
             
-            distances = result['distances']
-            print(f"📹 Video #{processing_count}: {result['mode']} | Obstacles: {result['obstacle_info']} | "
-                      f"G={distances['gauche']:.2f}m C={distances['centre']:.2f}m D={distances['droite']:.2f}m")
+            if debug:
+                distances = result['distances']
+                print(f"📹 Video #{processing_count}: {result['mode']} | Obstacles: {result['obstacle_info']} | "
+                        f"G={distances['gauche']:.2f}m C={distances['centre']:.2f}m D={distances['droite']:.2f}m")
                 
         except Empty:
             continue
         except Exception as e:
             print(f"Video processing error: {e}")
 
-def arduino_communication_thread():
+def arduino_communication_thread(debug=False):
     """
     Processing thread dedicated to Arduino communication
+        
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Notes
     -----
@@ -210,17 +226,22 @@ def arduino_communication_thread():
         except Exception as e:
             print(f"Arduino communication error: {e}")
 
-def start_processing():
+def start_processing(debug=False):
     """
     Function to start all processing threads
+
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
     """
     print("Starting processing threads...")
     
-    micro_thread = threading.Thread(target=micro_processing_thread, daemon=True)
+    micro_thread = threading.Thread(target=micro_processing_thread, args=(debug,), daemon=True)
     
-    video_thread = threading.Thread(target=video_processing_thread, daemon=True)
+    video_thread = threading.Thread(target=video_processing_thread, args=(debug,), daemon=True)
     
-    arduino_thread = threading.Thread(target=arduino_communication_thread, daemon=True)
+    arduino_thread = threading.Thread(target=arduino_communication_thread, args=(debug,), daemon=True)
     
     micro_thread.start()
     print("Micro processing thread started")
