@@ -11,7 +11,7 @@ import threading, time, numpy as np
 from queue import Empty
 from queue_manager import queue_manager
 
-def heavy_audio_processing(chunk):
+def heavy_audio_processing(chunk, debug=False):
     '''
     Heavy processing for microphone audio data.
 
@@ -19,6 +19,8 @@ def heavy_audio_processing(chunk):
     ----------
     chunk : np.ndarray
         The audio data chunk to be processed
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Returns
     -------
@@ -50,8 +52,8 @@ def heavy_audio_processing(chunk):
     # Main frequency detection
     fft_result = np.fft.fft(chunk)
     dominant_freq = np.argmax(np.abs(fft_result[:len(fft_result)//2]))
-
-    print(f"Audio Processing - RMS: {rms:.5f}, dB: {niveau_db:.2f}, Class: {sound_label}, Freq: {dominant_freq} Hz")
+    if debug:
+        print(f"Audio Processing - RMS: {rms:.5f}, dB: {niveau_db:.2f}, Class: {sound_label}, Freq: {dominant_freq} Hz")
     
     return {
         'rms': rms,
@@ -61,7 +63,7 @@ def heavy_audio_processing(chunk):
         'timestamp': time.time()
     }
 
-def heavy_video_processing(video_data):
+def heavy_video_processing(video_data, debug=False):
     """
     Heavy processing for video data.
 
@@ -69,6 +71,8 @@ def heavy_video_processing(video_data):
     ----------
     video_data : dict
         The video data to be processed
+    debug : bool
+        If True, enables debug mode with verbose logging.
 
     Returns
     -------
@@ -137,7 +141,7 @@ def micro_processing_thread(debug=False):
             processing_count += 1
             
             # Traitement audio lourd
-            result = heavy_audio_processing(chunk)
+            result = heavy_audio_processing(chunk, debug)
             
             # Commande Arduino pour l'audio
             arduino_command = {
@@ -178,7 +182,7 @@ def video_processing_thread(debug=False):
             video_data = queue_manager.get_video_data(timeout=1.0)
             processing_count += 1
             
-            result = heavy_video_processing(video_data)
+            result = heavy_video_processing(video_data, debug)
 
             arduino_command = {
                 'type': 'vision_alert',
