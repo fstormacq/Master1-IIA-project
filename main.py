@@ -39,7 +39,7 @@ def main(no_audio, no_video, debug):
     
     # Consumer thread (processing)
     print("Starting processing threads...")
-    processing_thread = threading.Thread(target=start_processing, args=(debug,), daemon=True)
+    processing_thread = threading.Thread(target=start_processing, args=(no_audio, no_video, debug), daemon=True)
     
     print("Starting all threads...")
     

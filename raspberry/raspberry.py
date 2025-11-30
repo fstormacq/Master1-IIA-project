@@ -205,7 +205,7 @@ def video_processing_thread(debug=False):
 def arduino_communication_thread(debug=False):
     """
     Processing thread dedicated to Arduino communication
-        
+
     Parameters
     ----------
     debug : bool
@@ -226,20 +226,26 @@ def arduino_communication_thread(debug=False):
         except Exception as e:
             print(f"Arduino communication error: {e}")
 
-def start_processing(debug=False):
+def start_processing(no_audio=False, no_video=False, debug=False):
     """
     Function to start all processing threads
 
     Parameters
     ----------
+    no_audio : bool
+        If True, audio processing is disabled.
+    no_video : bool
+        If True, video processing is disabled.
     debug : bool
         If True, enables debug mode with verbose logging.
     """
     print("Starting processing threads...")
     
-    micro_thread = threading.Thread(target=micro_processing_thread, args=(debug,), daemon=True)
+    if not no_audio:
+        micro_thread = threading.Thread(target=micro_processing_thread, args=(debug,), daemon=True)
     
-    video_thread = threading.Thread(target=video_processing_thread, args=(debug,), daemon=True)
+    if not no_video:
+        video_thread = threading.Thread(target=video_processing_thread, args=(debug,), daemon=True)
     
     arduino_thread = threading.Thread(target=arduino_communication_thread, args=(debug,), daemon=True)
     
