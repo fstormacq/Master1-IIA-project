@@ -241,6 +241,10 @@ def start_processing(no_audio=False, no_video=False, debug=False):
     """
     print("Starting processing threads...")
     
+    # Initialize thread variables
+    micro_thread = None
+    video_thread = None
+    
     if not no_audio:
         micro_thread = threading.Thread(target=micro_processing_thread, args=(debug,), daemon=True)
     
@@ -249,11 +253,11 @@ def start_processing(no_audio=False, no_video=False, debug=False):
     
     arduino_thread = threading.Thread(target=arduino_communication_thread, args=(debug,), daemon=True)
     
-    if not no_audio:
+    if not no_audio and micro_thread:
         micro_thread.start()
         print("Micro processing thread started")
     
-    if not no_video:
+    if not no_video and video_thread:
         video_thread.start()
         print("Video processing thread started")
     
