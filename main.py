@@ -27,7 +27,6 @@ def main(no_audio, no_video, debug):
 
     print("Starting Raspberry Pi system with separate queues...")
     
-    # Initialize thread variables
     audio_thread = None
     video_thread = None
     

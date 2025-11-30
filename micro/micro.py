@@ -35,16 +35,16 @@ def audio_callback(indata, frames, time_info, status):
         queue_manager.put_micro_data(chunk)
 
 
-def start_audio_capture(device_id=None, debug=False):
+def start_audio_capture(debug=False, device_id=None):
     """
     Start capturing audio from the specified device.
 
     Parameters
     ----------
-    device_id : int or None
-        The ID of the audio input device to use. If None, the default device is used.
     debug : bool
-        If True, enables debug mode with verbose logging.   
+        If True, enables debug mode with verbose logging.
+    device_id : int or None
+        The ID of the audio input device to use. If None, will search for the default device.
     """
     global audio_running
 
@@ -54,6 +54,21 @@ def start_audio_capture(device_id=None, debug=False):
         return
 
     audio_running = True
+
+    # If no device_id provided, search for the device
+    if device_id is None:
+        devices = sd.query_devices() 
+        
+        for i, dev in enumerate(devices):
+            if dev['max_input_channels'] > 0 and DEVICE_NAME in dev['name']:
+                device_id = i
+                break
+
+        if device_id is None:
+            raise RuntimeError(f"{DEVICE_NAME} can't be found.")
+        
+        if debug:
+            print(f"Found audio device: {devices[device_id]['name']} (ID: {device_id})")
 
     if debug:
         print(f"Starting audio capture on device {device_id}...")
@@ -71,16 +86,4 @@ def start_audio_capture(device_id=None, debug=False):
 
 
 if __name__ == "__main__":
-    devices = sd.query_devices() 
-    
-    device_id = None
-    for i, dev in enumerate(devices):
-        if dev['max_input_channels'] > 0 and DEVICE_NAME in dev['name']:
-            device_id = i
-            break
-
-    if device_id is None:
-        raise RuntimeError(f"{DEVICE_NAME} can't be found.")
-    
-    sd.default.device = (device_id, None)
-    start_audio_capture(device_id)
+    start_audio_capture()
