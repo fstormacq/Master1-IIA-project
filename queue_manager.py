@@ -3,7 +3,10 @@ from typing import Any
 import time
 
 class QueueManager:
-    """Gestionnaire centralisé des queues partagées - Queues séparées"""
+    """
+    QueueManager handle separate queues for audio (microphone) data,
+    video (camera) data, and commands to be sent to the Arduino.
+    """
     
     def __init__(self):
         # Queue séparée pour les données audio du microphone
@@ -29,6 +32,7 @@ class QueueManager:
         
         try:
             self.micro_queue.put_nowait((data, time.time()))
+            print(f"Queue: {self.micro_queue}")
         except Full:
             self.dropped_micro_count += 1
             print(f"MICRO Queue full! Dropped: {self.dropped_micro_count}/{self.total_micro_count}")

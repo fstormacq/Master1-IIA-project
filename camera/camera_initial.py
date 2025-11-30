@@ -2,7 +2,7 @@
 #note changer le gauhe droite devant car le gauche est devant le milieu est guche et droite est droite 
 #prendre en compte que seul la zone au milieu est prise en compte pour le mode si il y'a du dangerq
 
-import pyrealsense2 as rs
+import pyrealsense2 as rs # type: ignore
 import numpy as np 
 import cv2
 from collections import deque

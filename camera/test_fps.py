@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test script pour tester différents FPS avec RealSense"""
 
-import pyrealsense2 as rs
+import pyrealsense2 as rs # type: ignore
 import time
 
 def test_fps(fps_value, test_duration=5):
