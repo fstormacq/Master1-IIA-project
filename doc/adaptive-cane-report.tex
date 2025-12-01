@@ -1,0 +1,286 @@
+\documentclass[sigconf]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%%
+%% Rights management information. 
+
+\copyrightyear{2024}
+\acmYear{2024}
+\setcopyright{rightsretained}
+\acmConference[AIM 2025]{Proceedings of the UNamur
+Symposium on Advanced Interaction Methods}{December 1,
+2025}{Namur, Belgium}
+\acmBooktitle{Proceedings of the UNamur
+Symposium on Advanced Interaction Methods (AIM 2025 Proceedings), December 1, 2025,
+Namur, Belgium}\acmDOI{00.0000/0000000.0000000}
+\acmISBN{000-0-0000-0000-0/00/00}
+
+%%
+%% Packages
+
+\usepackage{xspace}
+\newcommand{\ie}{\textit{i.e.},\xspace}
+\newcommand{\eg}[0]{\textit{e.g.},\xspace}
+\newcommand{\vs}[0]{\textit{vs.}\xspace}
+\newcommand{\etal}{\textit{et al.}\xspace}
+
+\begin{document}
+
+%%
+%% Title
+
+\title[Adaptive Cane]{Adaptative Cane for Visually Impaired People}
+
+%%
+%% Authors
+
+\author{Nathan Lambrechts}
+\email{nathan.lambrechts@student.unamur.be}
+
+\author{Simon Dourte}
+\email{simon.dourte@student.unamur.be}
+
+\author{Florian Stormacq}
+\email{florian.stormacq@student.unamur.be}
+
+\author{Edwyn Eben}
+\email{edwyn.eben@student.unamur.be}
+
+\author{Louca Mathieu}
+\email{louca.mathieu@student.unamur.be}
+
+\affiliation{
+  \institution{University of Namur, Namur Digital Institute (NaDI) and Research Center on Information Systems Engineering (PReCISE)}
+  \city{Namur}
+  \country{Belgium}
+}
+
+\renewcommand{\shortauthors}{Lambrechts et al.}
+
+%%
+%% Teaser figure
+
+\begin{teaserfigure}
+    \vspace{-8pt}
+    \includegraphics[width=\textwidth,alt={System diagram showing the adaptive cane components including Intel RealSense camera, microphone, Raspberry Pi processing unit, Arduino controller, and haptic feedback motors arranged in a connected system architecture}]{figures/adaptive-cane-system.png}
+    \vspace{-18pt}
+    \caption{Overview of the Adaptive Cane System with Intel RealSense camera, microphone, Raspberry Pi processing unit, and haptic feedback motors} 
+    \label{fig:teaser}
+\end{teaserfigure}
+
+%%
+%% Abstract
+
+\begin{abstract}
+People with visual impairments represent a significant proportion of the global population. It is estimated that at least 2.2 billion people have some form of vision impairment. It is therefore essential to develop solutions that meet their needs and improve their independence. With this in mind, this project presents an adaptive connected cane for blind or visually impaired people designed to improve their perception of their surroundings and increase their safety in the face of potential obstacles and dangers. The cane is based on two main sensors: an Intel RealSense D435 depth camera and a USB microphone. The data from these sensors is processed in real time by a Raspberry Pi 3. The microphone assesses the noise level of the environment, while the camera detects the position and distance of obstacles and the recommended area to avoid them. This information is used to determine one of the device's three alert modes. User feedback is provided by three vibrating motors, each associated with a direction. The intensity and duration of the vibrations indicate the proximity of the danger and guide the user as they move. This prototype is therefore an assistance solution aimed at improving the mobility and safety of blind or visually impaired people in their daily lives.
+\end{abstract}
+
+%%
+%% Keywords and Concepts
+
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003120.10003121.10003124.10010392</concept_id>
+       <concept_desc>Human-centered computing~Mixed / augmented reality</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003120.10003121.10003124.10010865</concept_id>
+       <concept_desc>Human-centered computing~Graphical user interfaces</concept_desc>
+       <concept_significance>100</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003120.10003121.10003129.10011756</concept_id>
+       <concept_desc>Human-centered computing~User interface programming</concept_desc>
+       <concept_significance>100</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003120.10003121.10003125</concept_id>
+       <concept_desc>Human-centered computing~Interaction devices</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003120.10003121.10003126</concept_id>
+       <concept_desc>Human-centered computing~Accessibility</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Human-centered computing~Mixed / augmented reality}
+\ccsdesc[100]{Human-centered computing~Graphical user interfaces}
+\ccsdesc[100]{Human-centered computing~User interface programming}
+\ccsdesc[300]{Human-centered computing~Interaction devices}
+\ccsdesc[500]{Human-centered computing~Accessibility}
+
+\keywords{Assistive technology, Visual impairment, Haptic feedback, Depth sensing, Audio processing, Raspberry Pi, Arduino}
+
+\maketitle
+
+%%
+%% Introduction
+
+\section{Introduction}
+
+The goal of the project is to develop an adaptive smart cane designed to improve spatial awareness and safety for visually impaired people. The system relies on two main sensors: a depth camera and a microphone to detect obstacles or danger in real lifetime. The data is collected by a Raspberry Pi which analyzes visual and audio information from the environment.
+
+The system focuses entirely on haptic feedback. A set of 3 vibration motors is placed on the cane to provide tactile information to the user. Each motor has a direction which means one direction is missing. Indeed, we have left out the back direction because the camera will be settled as glasses so they can't see behind the user. The vibration intensity and duration reflect the proximity of the danger allowing the user to interpret the environment with the haptic output.
+
+This cane aims to support blind people during a random urban walk or any action that has potential danger to the user.
+
+%%
+%% Related work
+
+\section{Related work}
+
+Recent work has explored the use of haptic feedback to support navigation for visually impaired people. The system presented in~\cite{haptic-navigation} shows that vibration cues can effectively convey spatial information and help users perceive obstacles without relying on vision. However, this approach focuses mainly on haptic modality and does not integrate additional modalities. This limitation highlights the need for devices that combine multiple sources of information to provide a more reliable feedback during navigation.
+
+%%
+%% Methodology
+
+\section{Methodology}
+
+The project is structured into several key components to ensure optimal functionality, performance, and maintainability:
+
+\subsection{Project Architecture}
+
+\subsubsection{Sensors}
+
+\paragraph{Audio Sensor (Microphone):} To capture ambient sound, we use a USB microphone ("USB PnP Sound Device"). The goal is to continuously record the surrounding audio signal in order to determine the noise level around the user. This allows us to know whether the environment is noisy (\eg a crowd) or quiet.
+
+\paragraph{Video Sensor (Intel RealSense Camera):} To capture the image and depth of field, we use a RealSense Depth D435i camera connected to the Raspberry Pi with a USB-C cable. The aim is to continuously record the video stream perceived by the camera, knowing where the danger is and how far away it is, in order to determine which alert mode the cane will be in and where to dodge it.
+
+\subsubsection{Data Capture and Processing}
+
+To capture and process data from the sensors in real-time, a Raspberry Pi 3 is used. 
+
+\textbf{Note:} This device is not the initial Raspberry Pi 1 that were furnished at the beginning of the project, as it was not powerful enough to handle the processing requirements.
+
+The Raspberry Pi runs a Python script, which is responsible for capturing and processing the data from the sensors. This process outputs a simple result: specified intensity levels for each vibration motor, as well as the noise level detected.
+
+The output would be added in a queue, which would be read by an Arduino board to actuate the motors accordingly.
+
+\subsubsection{Arduino Board}
+
+In this project, Arduino will be used as an interface between the central processing (Raspberry) and the physical actuators (vibration motors). It receives already-processed instructions that specify how the motors should behave.
+
+First, the Raspberry sends data divided in 3 with where the danger comes from, the intensity and the duration of the vibration. The Arduino receives the information, interprets it and converts it into appropriate signals for the vibration motors.
+
+In the overall architecture, the Arduino is responsible for executing the physical output (vibration motors) in real time. It doesn't treat data, it applies the received instructions for the vibration motors.
+
+\subsection{Project Implementation}
+
+A Python script is implemented to run on the Raspberry Pi 3, which captures and processes the data from the sensors in real-time.
+
+\textbf{Note:} As the sensors "produce" data continuously, the script implements a multi-threaded Producer-Consumer architecture to handle the data efficiently.
+
+A \texttt{main.py} file is the entry point of the codebase, which initializes and starts the different components (as the sensors) of the system.
+
+\subsubsection{Sensors Implementation}
+
+\paragraph{Audio Sensor (Microphone):} A Python script in the micro folder is used to capture the data recorded by the microphone. Audio capture relies on the sounddevice library, which creates an audio stream that captures samples in real time. The signal is retrieved as chunks, then sent into a queue to be processed.
+
+To achieve this, the script first searches for the desired audio device. Then, it defines various parameters (chunk size, chunk duration, etc). After that, audio capture is performed through an audio stream (InputStream) associated with a callback function. Each time new data is received, the samples are added to an internal buffer. As soon as this buffer contains enough samples to form a complete chunk, the chunk is extracted and converted into a NumPy array before being sent into a queue for processing.
+
+\paragraph{Video Sensor (Intel RealSense Camera):} Video capture is based on the pyrealsense2 library, which is Intel RealSense's official library, as well as other imports such as numpy, cv2 and deque for image processing and data history management.
+
+After initialising the camera and its settings, the script launches a pipeline in depth mode, retrieves the depth to convert the raw values into metres and prepares a history for each direction.
+
+It then divides the image into three areas and calculates the median for each area, then saves them in the corresponding history.
+
+The script then defines the danger level, but only takes into account the area in front (below one metre: alert, between 1 and 2 metres: caution, beyond: peaceful area).
+
+In addition, the script detects where obstacles are located and indicates the recommended area to avoid danger.
+
+Finally, the script displays the information.
+
+All these operations are performed continuously in an infinite loop, which allows the stream to be processed in real time and the histories to be constantly updated in order to avoid sudden variations and obtain a more stable distance for each area.
+
+Both sensor data are captured in separate threads, which act as separate "Producers" in the architecture. However, in the current ideal version of the code, the two producers would share the same queue and will add data into a shared tuple [(microphone data, camera data),...]. This ideal version is not yet implemented, but this would ensure that the data from both sensors are synchronized.
+
+\subsubsection{Raspberry Pi Script}
+
+The Raspberry Pi script ensures the following functionalities:
+
+\begin{enumerate}
+\item The audio processing: Consumes the audio data from the microphone producer thread and computes the necessary audio features (\eg RMS, noise level, etc.).
+\item The video processing: Consumes the video data from the camera producer thread, computes the necessary features (not yet implemented in the current version).
+\item Add the computed features into a queue, which will be read by the Arduino board to actuate the motors accordingly.
+\end{enumerate}
+
+The current version of the code only implements the audio processing part, while the video processing, the synchronization and the data communication with the Arduino board are yet to be implemented.
+
+\paragraph{Limitations of the Raspberry Pi:} Several problems were encountered when using the Raspberries.
+
+\begin{enumerate}
+\item \textbf{Performance Issue:} The initial Raspberry Pi 1 was not powerful enough to handle the processing requirements of the audio and video data in real-time. Time was lost trying to optimize the code to run on this device. Eventually, it was decided to switch to a more powerful Raspberry Pi 3.
+\item \textbf{Configuration Issue:} Setting up the Raspberry Pi with the necessary libraries, configurations and dependencies for the sensors (particularly the Intel RealSense camera) proved to be more challenging than anticipated. Significant time was spent to configure the device properly. However, for reproducibility purposes, all the steps followed to set up the Raspberry Pi 3 are documented in a separate installation guide.
+\item A particular note can be made about the installation of the Intel RealSense Python library, which required to clone the library from GitHub and build it from source, as the pre-compiled binaries were not compatible with the Raspberry Pi architecture. This process involved lots of resources and time.
+\item It is assumed that the synchronization of the data from both sensors will be challenging.
+\end{enumerate}
+
+\subsubsection{Arduino Board Implementation}
+
+The Arduino implementation is structured in two main parts. The first part is the initialization phase where the necessary functions are prepared so they can be reused across different folders of the project. The second part consists of the main program logic where the code is executed.
+
+The main loop continuously receives data from the Raspberry Pi and applies the instructions to the output pins. These instructions determine which vibration motor should be activated, at what intensity and for how long.
+
+For now, the vibration motors have temporarily been replaced with LEDs for testing purposes due to a voltage issue between the Arduino and the vibration motors. This allows the output logic to be verified and fixes the potential problems.
+
+On the Raspberry part, the team has switched to a producer-consumer architecture to handle receiving data from the camera and the microphone. The next step for the Arduino will be to stay in agreement with the Raspberry so it is essential to have a producer-consumer in the Arduino part too.
+
+%%
+%% Contribution
+
+\section{Contribution}
+
+\textit{TO BE DONE}
+
+%%
+%% Evaluation
+
+\section{Evaluation}
+
+\textit{The evaluation section will be completed once the full system is implemented and tested with users.}
+
+%%
+%% Discussion
+
+\section{Discussion}
+
+\subsection{What's Next}
+
+On the Raspberry part, we have to finish the receipt of danger from the two modalities and finish the producer-consumer architecture. Same for Arduino where the PC architecture has to be implemented.
+
+To follow a happy end of the project, we will need to finalize all unwritten sections of this report. We have to add the evaluation and conclusion part. These parts require the project to be over and so it will be done right after the project's end.
+
+%%
+%% Conclusion
+
+\section{Conclusion}
+
+\textit{The conclusion will be written upon completion of the project implementation and evaluation.}
+
+%%
+%% Open Science
+
+\section*{Open Science}
+
+Our GitHub repository with code is accessible at \url{https://github.com/fstormacq/Master1-IIA-project}.
+
+%%
+%% Acknowledgements
+
+\begin{acks}
+    This work was supported by the University of Namur, the Namur Digital Institute (NaDI), and the Research Center on Information Systems Engineering (PReCISE). The authors would like to thank all individuals who contributed to this project. A particular thanks to the providers of the hardware components that made this research possible.
+\end{acks}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{template/bibliography}
+
+\end{document}
+\endinput
