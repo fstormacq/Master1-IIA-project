@@ -1,10 +1,9 @@
 #include "send.h"
 
 
-const int upperPin = 10;
-const int rightPin = 11;
-const int bottomPin = 12;
-const int leftPin = 13;
+int upperPin = 10;
+int rightPin = 11;
+int leftPin = 12;
 
 void setupPins() {
     pinMode(upperPin, OUTPUT);
@@ -15,40 +14,23 @@ void setupPins() {
 }
 
 unsigned long vibrationEndTime = 0;
-int activepin = -1;
-
-
-void vibrate(String position, int intensity, int duration){
-    stopAll();
-
-    if (position == "UPP") {
-        analogWrite(upperPin, intensity);
-        activepin = upperPin;
-    }
-    else if (position == "DRO") {
-        analogWrite(rightPin, intensity);
-        activepin = rightPin;
-    }
-    else if (position == "GAU") {
-        analogWrite(leftPin, intensity);
-        activepin = leftPin;
-    }
-
-    vibrationEndTime = millis() + duration;
-
-}
+bool timedMode = false;
 
 void stopAll() {
     analogWrite(upperPin, 0);
     analogWrite(rightPin, 0);
     analogWrite(leftPin, 0);
-    activePin = -1;
+    timedMode = false;
     vibrationEndTime = 0;
 }
 
 void handleVibrationTimer() {
-    if (activePin != -1 && millis() > vibrationEndTime) {
-        analogWrite(activePin, 0);
-        activePin = -1;
+    if (timedMode && millis() > vibrationEndTime) {
+        stopAll();
     }
+}
+
+void startTimedVibration(unsigned long durationMs) {
+    timedMode = true;
+    vibrationEndTime = millis() + durationMs;
 }
