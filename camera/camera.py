@@ -11,7 +11,7 @@ from queue_manager import queue_manager
 import traceback
 
 
-# Camera parameters
+#Camera parameters
 DISTANCE_AREA_ATTENTION = 2.0
 DISTANCE_AREA_ALERT = 1.0
 
