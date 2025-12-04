@@ -34,7 +34,8 @@ DEPTH_SCALE = None
 USE_SIMULATION = True  #Flag to simulate RealSense data when camera is not available
 
 def check_realsense_available(pyrealsense=False):
-    """Check if RealSense camera is available
+    """
+    Check if RealSense camera is available
     
     Returns
     -------

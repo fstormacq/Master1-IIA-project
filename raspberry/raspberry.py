@@ -17,7 +17,7 @@ from raspberry.sync_buffer import SyncBuffer
 
 def heavy_audio_processing(chunk, debug=False):
     '''
-    Heavy processing for microphone audio data.
+    Heavy processing for audio data.
 
     Parameters
     ----------
@@ -34,16 +34,16 @@ def heavy_audio_processing(chunk, debug=False):
 
     rms = np.sqrt(np.mean(chunk**2))
     
-    # Computing dB level
-    ref = 1.0      # Reference for dBFS (normalized float audio)
-    eps = 1e-12    # Avoid log10(0)
+    #Computing dB level
+    ref = 1.0      #Reference for dBFS (normalized float audio)
+    eps = 1e-12    #Avoid log10(0)
     level = max(rms / ref, eps)
     niveau_db = 20.0 * np.log10(level)
     
     if not np.isfinite(niveau_db):
         niveau_db = -np.inf
     
-    # Sound level classification
+    #Sound level classification
     if niveau_db < -45:
         sound_label = "Chillax"
     elif niveau_db < -30:
@@ -53,7 +53,7 @@ def heavy_audio_processing(chunk, debug=False):
     else:
         sound_label = "Danger"
     
-    # Main frequency detection
+    #Main frequency detection
     fft_result = np.fft.fft(chunk)
     dominant_freq = np.argmax(np.abs(fft_result[:len(fft_result)//2]))
     if debug:
@@ -93,16 +93,16 @@ def heavy_video_processing(video_data, debug=False):
     obstacles = video_data['obstacles']
     distances = video_data['distances_smooth']
     
-    # Analyse de sécurité
+    #Severity level determination
     danger_level = 0
     if 'Centre' in obstacles:
-        danger_level = 3  # Danger critique
+        danger_level = 3  #Critique
     elif len(obstacles) > 1:
-        danger_level = 2  # Danger élevé 
+        danger_level = 2  #High
     elif len(obstacles) == 1:
-        danger_level = 1  # Attention
+        danger_level = 1  #Warning
     
-    # Classification du risque
+    #Risk classification
     risk_classification = "safe"
     if danger_level == 3:
         risk_classification = "critical"
@@ -111,7 +111,7 @@ def heavy_video_processing(video_data, debug=False):
     elif danger_level == 1:
         risk_classification = "medium"
     
-    # Need to minimize the data sent to Arduino
+    #Need to minimize the data sent to Arduino
     return {
         'mode': mode,
         'obstacle_info': video_data['obstacle_info'],
@@ -144,9 +144,7 @@ def micro_processing_thread(debug=False):
             chunk = queue_manager.get_micro_data()
             processing_count += 1
             
-            # Traitement audio lourd
             result = heavy_audio_processing(chunk, debug)
-            
             """
             # Commande Arduino pour l'audio
             arduino_command = {
@@ -158,10 +156,8 @@ def micro_processing_thread(debug=False):
             }
             queue_manager.put_arduino_data(arduino_command)"""
             
-            # NOUVEAU: Envoyer vers la queue de données traitées
             queue_manager.put_audio_processed_data(result)
             
-            # Debug
             if debug:
                 print(f"Audio #{processing_count}: {result['db_level']:.1f}dB - {result['sound_classification']}")
                 
@@ -204,7 +200,6 @@ def video_processing_thread(debug=False):
             
             queue_manager.put_arduino_data(arduino_command)"""
             
-            # NOUVEAU: Envoyer vers la queue de données traitées
             queue_manager.put_video_processed_data(result)
             
             if debug:
@@ -243,18 +238,24 @@ def video_processing_thread(debug=False):
             
 def arduino_communication_thread(debug=False):
     """
-    Thread centralisé pour synchronisation et communication Arduino
+    Centralized thread for Arduino synchronization and communication
     
-    Ce thread :
-    1. Collecte les données audio/vidéo traitées
-    2. Les synchronise temporellement  
-    3. Génère les messages LCR
-    4. Envoie vers Arduino
+    Parameters
+    ----------
+    debug : bool
+        If True, enables debug mode with verbose logging.
+        
+    Notes
+    -----   
+    1. Collects processed audio/video data
+    2. Synchronizes them in time
+    3. Generates LCR messages
+    4. Sends them to the Arduino
     """
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
-    send_interval = 1.0 / 25.0  # 25 Hz max
+    send_interval = 1.0 / 25.0  #Max 25Hz sending rate
     
     print("🤖 Arduino communication thread started with synchronization")
     
@@ -262,30 +263,29 @@ def arduino_communication_thread(debug=False):
         try:
             current_time = time.time()
             
-            # Collecter nouvelles données audio
+            #Collect new audio data
             try:
                 audio_result = queue_manager.get_audio_processed_data(timeout=0.01)
                 sync_buffer.add_audio(audio_result)
             except Empty:
                 pass
             
-            # Collecter nouvelles données vidéo  
+            #Collect new video data
             try:
                 video_result = queue_manager.get_video_processed_data(timeout=0.01)
                 sync_buffer.add_video(video_result)
             except Empty:
                 pass
             
-            # Limiter la fréquence d'envoi Arduino (25Hz max)
+            #Limit Arduino send frequency (max 25Hz)
             if (current_time - last_send_time) < send_interval:
-                time.sleep(0.001)  # Petite pause
+                time.sleep(0.001) 
                 continue
                 
-            # Tentative de synchronisation
+            #Attempt to get synchronized data
             sync_pair = sync_buffer.get_synchronized_pair()
             
             if sync_pair:
-                # Données synchronisées disponibles
                 audio_data, video_data = sync_pair
                 message = message_generator.generate_synchronized_message(
                     audio_data.data, video_data.data
@@ -297,7 +297,7 @@ def arduino_communication_thread(debug=False):
                     print(f"🔄 SYNC {message} (Δt={time_diff*1000:.1f}ms)")
                     
             else:
-                # Fallback avec données disponibles
+                #Fallback to latest available data
                 latest_audio_sensor = sync_buffer.get_latest_audio()
                 latest_video_sensor = sync_buffer.get_latest_video()
                 
@@ -315,7 +315,7 @@ def arduino_communication_thread(debug=False):
                             "video" if latest_video and not latest_audio else "both_unsync"
                     print(f"[WARNING] FALLBACK {message} (source: {source})")
             
-            # Préparer commande Arduino
+            #Prepare Arduino command
             arduino_command = {
                 'type': 'LCR_command',
                 'message': message,
@@ -323,11 +323,11 @@ def arduino_communication_thread(debug=False):
                 'sync_quality': sync_quality
             }
             
-            # Envoi série Arduino (à implémenter)
+            #Send to Arduino (to be implemented)
             if debug:
                 print(f"➡️  Arduino: {message}")
-            # TODO: Ajouter ici la communication série réelle
-            # serial_port.write(message.encode() + b'\n')
+            #TODO: Add real serial communication here
+            #serial_port.write(message.encode() + b'\n')
             
             last_send_time = current_time
             
@@ -350,7 +350,7 @@ def start_processing(no_audio=False, no_video=False, debug=False):
     """
     print("Starting processing threads...")
     
-    # Initialize thread variables
+    #Initialize thread variables
     micro_thread = None
     video_thread = None
     
@@ -380,6 +380,5 @@ def start_processing(no_audio=False, no_video=False, debug=False):
     except Exception as e:
         print(f"Processing error: {e}")
 
-# For individual tests
 if __name__ == "__main__":
     start_processing()
