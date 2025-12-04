@@ -84,7 +84,7 @@ def start_audio_capture(debug=False, device_id=None, simulate=False):
             audio_running = False
         return
 
-    # If no device_id provided, search for the device
+    #If no device_id provided, search for the device
     if device_id is None:
         devices = sd.query_devices() 
         
