@@ -9,22 +9,29 @@ class QueueManager:
     """
     
     def __init__(self):
-        # Separate queue for microphone audio data
+        #Separate queue for microphone audio data
         self.micro_queue = Queue(maxsize=10)
         
-        # Separate queue for camera video data
+        #Separate queue for camera video data
         self.video_queue = Queue(maxsize=10)
         
-        # Separate queue for processed data to be sent to the Arduino
+        #Separate queue for processed data to be sent to the Arduino
         self.arduino_queue = Queue(maxsize=5)
+        
+        self.audio_processed_queue = Queue(maxsize=5)
+        self.video_processed_queue = Queue(maxsize=5)
         
         # Monitoring
         self.dropped_micro_count = 0
         self.dropped_video_count = 0
         self.dropped_arduino_count = 0
+        self.dropped_audio_processed_count = 0
+        self.dropped_video_processed_count = 0
         self.total_micro_count = 0
         self.total_video_count = 0
         self.total_arduino_count = 0
+        self.total_audio_processed_count = 0
+        self.total_video_processed_count = 0
         
     def put_micro_data(self, data: Any):
         '''
@@ -163,6 +170,121 @@ class QueueManager:
         result = self.arduino_queue.get(timeout=timeout)
         return result[0] if isinstance(result, tuple) else result
     
+    def put_audio_processed_data(self, data):
+        """
+        Add processed audio data with timestamp
+        
+        Parameters
+        ----------
+        data : Any
+            The processed audio data to be added to the queue
+        """
+        self.total_audio_processed_count += 1
+        
+        try:
+            self.audio_processed_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_audio_processed_count += 1
+            #Drop oldest data
+            try:
+                self.audio_processed_queue.get_nowait()
+                self.audio_processed_queue.put_nowait((data, time.time()))
+            except Empty:
+                pass
+
+    def get_audio_processed_data(self, timeout=0.01):
+        """
+        Retrieve processed audio data
+        
+        Parameters
+        ----------
+        timeout : float
+            Time to wait for data before raising Empty exception, by default 0.01 seconds
+        
+        Returns
+        -------
+        Any
+            The processed audio data retrieved from the queue
+        """
+        result = self.audio_processed_queue.get(timeout=timeout)
+        return result[0] if isinstance(result, tuple) else result
+
+    def put_video_processed_data(self, data):
+        """
+        Add processed video data with timestamp
+        
+        Parameters
+        ----------
+        data : Any
+            The processed video data to be added to the queue
+        """
+        self.total_video_processed_count += 1
+        
+        try:
+            self.video_processed_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_video_processed_count += 1
+            # Drop oldest data
+            try:
+                self.video_processed_queue.get_nowait()
+                self.video_processed_queue.put_nowait((data, time.time()))
+            except Empty:
+                pass
+
+    def get_video_processed_data(self, timeout=0.01):
+        """
+        Retrieve processed video data
+        
+        Parameters
+        ----------
+        timeout : float
+            Time to wait for data before raising Empty exception, by default 0.01 seconds
+        
+        Returns
+        -------
+        Any
+            The processed video data retrieved from the queue
+        """
+        result = self.video_processed_queue.get(timeout=timeout)
+        return result[0] if isinstance(result, tuple) else result
+
+    def peek_latest_audio(self):
+        """
+        Retrieves the latest audio data without removing it from the queue
+        
+        Returns
+        -------
+        Any
+            The latest audio data in the queue or None if the queue is empty
+        """
+        if self.audio_processed_queue.empty():
+            return None
+        # Technique: get puis remet immédiatement
+        try:
+            data = self.audio_processed_queue.get_nowait()
+            self.audio_processed_queue.put_nowait(data)
+            return data[0] if isinstance(data, tuple) else data
+        except (Empty, Full):
+            return None
+
+    def peek_latest_video(self):
+        """
+        Retrieves the latest video data without removing it from the queue
+        
+        Returns
+        -------
+        Any
+            The latest video data in the queue or None if the queue is empty
+        """
+        if self.video_processed_queue.empty():
+            return None
+        try:
+            data = self.video_processed_queue.get_nowait()
+            self.video_processed_queue.put_nowait(data)
+            return data[0] if isinstance(data, tuple) else data
+        except (Empty, Full):
+            return None
+    
     def get_queue_stats(self):
         '''
         Get current statistics of the queues
@@ -175,12 +297,18 @@ class QueueManager:
         return {
             'micro_queue_size': self.micro_queue.qsize(),
             'video_queue_size': self.video_queue.qsize(),
+            'audio_processed_queue_size': self.audio_processed_queue.qsize(),
+            'video_processed_queue_size': self.video_processed_queue.qsize(),
             'arduino_queue_size': self.arduino_queue.qsize(),
             'micro_dropped': self.dropped_micro_count,
             'video_dropped': self.dropped_video_count,
+            'audio_processed_dropped': self.dropped_audio_processed_count,
+            'video_processed_dropped': self.dropped_video_processed_count,
             'arduino_dropped': self.dropped_arduino_count,
             'micro_total': self.total_micro_count,
             'video_total': self.total_video_count,
+            'audio_processed_total': self.total_audio_processed_count,
+            'video_processed_total': self.total_video_processed_count,
             'arduino_total': self.total_arduino_count,
             'micro_drop_rate': self.dropped_micro_count / max(1, self.total_micro_count) * 100,
             'video_drop_rate': self.dropped_video_count / max(1, self.total_video_count) * 100,

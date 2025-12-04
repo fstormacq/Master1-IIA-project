@@ -48,7 +48,7 @@ def simulate_audio_chunk():
 
 
 
-def start_audio_capture(debug=False, device_id=None, simulate=False):
+def start_audio_capture(debug=False, device_id=None, simulate=True):
     """
     Start capturing audio from the specified device.
 
