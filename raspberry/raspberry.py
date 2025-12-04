@@ -315,19 +315,23 @@ def arduino_communication_thread(debug=False):
                             "video" if latest_video and not latest_audio else "both_unsync"
                     print(f"[WARNING] FALLBACK {message} (source: {source})")
             
-            #Prepare Arduino command
+            """
             arduino_command = {
                 'type': 'LCR_command',
                 'message': message,
                 'timestamp': current_time,
                 'sync_quality': sync_quality
-            }
+            }"""
             
             #Send to Arduino (to be implemented)
+            
+            #TODO: Add real serial communication here
+            #import serial
+            #serial_port.write(message.encode() + b'\n')
+            #serial_port.flush()
+            
             if debug:
                 print(f"➡️  Arduino: {message}")
-            #TODO: Add real serial communication here
-            #serial_port.write(message.encode() + b'\n')
             
             last_send_time = current_time
             
