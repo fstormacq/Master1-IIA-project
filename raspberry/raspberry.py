@@ -7,7 +7,8 @@ It will consume data from connected sensors and process it accordingly.
 """
 
 import threading, time, numpy as np
-
+#import serial
+from raspberry.fake_serial import FakeSerial
 from queue import Empty
 from queue_manager import queue_manager
 from raspberry.sensor_data import SensorData
@@ -236,7 +237,7 @@ def video_processing_thread(debug=False):
         except Exception as e:
             print(f"Arduino communication error: {e}")"""
             
-def arduino_communication_thread(debug=False):
+def arduino_communication_thread(debug=False, simulate=True):
     """
     Centralized thread for Arduino synchronization and communication
     
@@ -252,6 +253,20 @@ def arduino_communication_thread(debug=False):
     3. Generates LCR messages
     4. Sends them to the Arduino
     """
+    if simulate:
+        serial_port = FakeSerial(log_file="lcr_log.txt", plot=True)
+    """else:
+        # --- Open Arduino serial port ---
+        try:
+            serial_port = serial.Serial(
+                port='/dev/ttyACM0',   #Adjust as necessary
+                baudrate=115200,
+                timeout=0.05
+            )
+            print("🔌 Serial port opened successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to open serial port: {e}")
+            serial_port = None"""
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
@@ -323,12 +338,8 @@ def arduino_communication_thread(debug=False):
                 'sync_quality': sync_quality
             }"""
             
-            #Send to Arduino (to be implemented)
-            
-            #TODO: Add real serial communication here
-            #import serial
-            #serial_port.write(message.encode() + b'\n')
-            #serial_port.flush()
+            if serial_port:
+                serial_port.write((message + "\n").encode())
             
             if debug:
                 print(f"➡️  Arduino: {message}")
