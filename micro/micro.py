@@ -33,9 +33,22 @@ def audio_callback(indata, frames, time_info, status):
         chunk = np.array(audio_buffer[:CHUNK_SIZE])
         audio_buffer = audio_buffer[CHUNK_SIZE:]
         queue_manager.put_micro_data(chunk)
+        
+        
+def simulate_audio_chunk():
+    """
+    Simulate an audio chunk for testing purposes.
+
+    Returns
+    -------
+    np.ndarray
+        Simulated audio data chunk
+    """
+    return np.random.uniform(-1.0, 1.0, CHUNK_SIZE).astype(np.float32)
 
 
-def start_audio_capture(debug=False, device_id=None):
+
+def start_audio_capture(debug=False, device_id=None, simulate=False):
     """
     Start capturing audio from the specified device.
 
@@ -45,6 +58,8 @@ def start_audio_capture(debug=False, device_id=None):
         If True, enables debug mode with verbose logging.
     device_id : int or None
         The ID of the audio input device to use. If None, will search for the default device.
+    simulate : bool
+        If True, simulates audio data instead of capturing from a device.
     """
     global audio_running
 
@@ -54,6 +69,20 @@ def start_audio_capture(debug=False, device_id=None):
         return
 
     audio_running = True
+    
+    if simulate:
+        if debug:
+            print("[WARNING] Microphone not found, starting audio simulation...")
+        try:
+            while True:
+                chunk = simulate_audio_chunk()
+                queue_manager.put_micro_data(chunk)
+                time.sleep(CHUNK_DURATION)
+        except KeyboardInterrupt:
+            print("Simulated audio stopped.")
+        finally:
+            audio_running = False
+        return
 
     # If no device_id provided, search for the device
     if device_id is None:
