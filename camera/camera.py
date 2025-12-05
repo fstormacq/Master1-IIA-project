@@ -11,7 +11,7 @@ from queue_manager import queue_manager
 import traceback
 
 
-# Camera parameters
+#Camera parameters
 DISTANCE_AREA_ATTENTION = 2.0
 DISTANCE_AREA_ALERT = 1.0
 
@@ -34,7 +34,8 @@ DEPTH_SCALE = None
 USE_SIMULATION = True  #Flag to simulate RealSense data when camera is not available
 
 def check_realsense_available(pyrealsense=True):
-    """Check if RealSense camera is available
+    """
+    Check if RealSense camera is available
     
     Returns
     -------
