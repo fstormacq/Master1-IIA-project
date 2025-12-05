@@ -2,7 +2,7 @@
 #note changer le gauhe droite devant car le gauche est devant le milieu est guche et droite est droite 
 #prendre en compte que seul la zone au milieu est prise en compte pour le mode si il y'a du dangerq
 
-#import pyrealsense2 as rs #type: ignore
+import pyrealsense2 as rs #type: ignore
 import numpy as np 
 import cv2 # ?
 import time
@@ -33,7 +33,7 @@ DEPTH_SCALE = None
 
 USE_SIMULATION = True  #Flag to simulate RealSense data when camera is not available
 
-def check_realsense_available(pyrealsense=False):
+def check_realsense_available(pyrealsense=True):
     """
     Check if RealSense camera is available
     
