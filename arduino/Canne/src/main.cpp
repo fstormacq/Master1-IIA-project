@@ -1,23 +1,20 @@
 #include <Arduino.h>
-#include "get.h"
 #include "logic.h"
 #include "send.h"
-#include "command_queue.h"
+#include "get.h"
 
 void setup() {
-    Serial.begin(115200);   
+    Serial.begin(115200);
     setupPins();
 }
 
 void loop() {
-    // Récupère une commande (FAKE si TEST_MODE = true)
+    // Lire la dernière commande envoyée par le Raspberry
     String cmd = getCommand();
 
-    // Si la commande n'est pas vide, traite-la
     if (cmd.length() > 0) {
-        parseAndEnqueue(cmd);
+        parseAndApply(cmd);   // traite immédiatement et écrase l’ancienne
     }
 
-    // Gère l'arrêt automatique après la durée
-    consumeQueue();
+    // Rien d’autre à gérer : la vibration reste active tant qu’on reçoit des commandes
 }

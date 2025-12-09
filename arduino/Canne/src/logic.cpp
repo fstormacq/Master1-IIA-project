@@ -1,78 +1,30 @@
 #include "logic.h"
-#include "command_queue.h"
 #include "send.h"
+#include <Arduino.h>
 
-unsigned long vibrationEnd = 0;
+void parseAndApply(String msg) {
+    Serial.println("[CMD] " + msg);
 
-void parseAndEnqueue(String msg) {
-    Serial.println("[PARSE] msg = " + msg);
+    int L = 0, C = 0, R = 0;
 
-    String pos;
-    int intensity = 0;
-    int duration = 0;
+    // Extraction des valeurs
+    int ok = sscanf(msg.c_str(), "L%d C%d R%d", &L, &C, &R);
 
-    // Décomposer la string : POS intensité durée
-    int ok = sscanf(msg.c_str(), "%3s %d %d", 
-                    (char*)malloc(4), &intensity, &duration);
-
-    if(ok != 3) {
-        Serial.println("[ERROR] Invalid command format");
+    if (ok != 3) {
+        Serial.println("[ERROR] Invalid format. Expected: Lxx Cxx Rxx");
         return;
     }
 
-    pos = msg.substring(0, 3);
+    // Saturation (valeurs 0–100 max)
+    L = constrain(L, 0, 100);
+    C = constrain(C, 0, 100);
+    R = constrain(R, 0, 100);
 
-    VibrationCommand cmd = {0, 0, 0, duration};
+    // Conversion 0–100 → 0–255
+    int pwmL = map(L, 0, 100, 0, 255);
+    int pwmC = map(C, 0, 100, 0, 255);
+    int pwmR = map(R, 0, 100, 0, 255);
 
-    if(pos == "UPP") {
-        cmd.upp = intensity;
-    }
-    else if(pos == "GAU") {
-        cmd.gau = intensity;
-    }
-    else if(pos == "DRO") {
-        cmd.dro = intensity;
-    }
-    else {
-        Serial.println("[ERROR] Unknown POS: " + pos);
-        return;
-    }
-
-    if(!cmdQueue.enqueue(cmd)) {
-        Serial.println("[QUEUE] FULL — command dropped");
-    } else {
-        Serial.println("[QUEUE] Added command ✓");
-    }
-}
-
-
-void consumeQueue() {
-    // Si une vibration est en cours → attendre
-    if(millis() < vibrationEnd)
-        return;
-
-    if(millis() >= vibrationEnd && vibrationEnd != 0) {
-        stopAll();
-        vibrationEnd = 0;
-    }
-    
-    if(cmdQueue.isEmpty()) 
-        return;
-
-    VibrationCommand cmd = cmdQueue.dequeue();
-
-    Serial.print("[EXEC] UPP=");
-    Serial.print(cmd.upp);
-    Serial.print(" GAU=");
-    Serial.print(cmd.gau);
-    Serial.print(" DRO=");
-    Serial.print(cmd.dro);
-    Serial.print(" DUR=");
-    Serial.println(cmd.duration);
-
-    analogWrite(upperPin, cmd.upp);
-    analogWrite(leftPin,  cmd.gau);
-    analogWrite(rightPin, cmd.dro);
-
-    vibrationEnd = millis() + cmd.duration;
+    // Application immédiate → remplace toute ancienne commande
+    applyIntensity(pwmL, pwmC, pwmR);
 }

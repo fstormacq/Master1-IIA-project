@@ -1,9 +1,5 @@
-#ifndef GET_H
-#define GET_H
-
+#pragma once
 #include <Arduino.h>
 
-// Récupère une commande envoyée par le Raspberry
+extern bool TEST_MODE;
 String getCommand();
-
-#endif
