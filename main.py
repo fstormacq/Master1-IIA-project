@@ -5,7 +5,7 @@ from micro.micro import start_audio_capture
 from camera.camera import start_video_capture
 from raspberry.raspberry import start_processing
 
-def main(no_audio, no_video, debug):
+def main(no_audio, no_video, debug, simulate):
     '''
     Main entry point for the Raspberry Pi system.
     This function starts separate threads for audio capture, video capture and processing.
@@ -42,7 +42,7 @@ def main(no_audio, no_video, debug):
     
     # Consumer thread (processing)
     print("Starting processing threads...")
-    processing_thread = threading.Thread(target=start_processing, args=(no_audio, no_video, debug), daemon=True)
+    processing_thread = threading.Thread(target=start_processing, args=(no_audio, no_video, debug, simulate), daemon=True)
     
     print("Starting all threads...")
     
@@ -88,7 +88,8 @@ if __name__ == "__main__":
     parser.add_argument('--no-video', action='store_true', help="Disable video capture")
 
     parser.add_argument('--debug', action='store_true', help="Enable debug mode with verbose logging")
+    parser.add_argument('--simulate', action='store_true', help="Simulate inputs for testing purposes")
 
     args = parser.parse_args()
 
-    main(args.no_audio, args.no_video, args.debug)
+    main(args.no_audio, args.no_video, args.debug, args.simulate)
