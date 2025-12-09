@@ -266,7 +266,11 @@ def arduino_communication_thread(debug=False, simulate=False):
                 timeout=0.05,
                 write_timeout=0.2 # Timeout écriture augmenté
             )
-            print("🔌 Serial port opened successfully")
+            print("🔌 Serial port opened successfully. Waiting for Arduino reset...")
+            time.sleep(2.0) # Wait for Arduino to reset
+            serial_port.reset_input_buffer()
+            serial_port.reset_output_buffer()
+            print("✅ Arduino ready")
         except Exception as e:
             print(f"[ERROR] Failed to open serial port: {e}")
 
@@ -344,7 +348,11 @@ def arduino_communication_thread(debug=False, simulate=False):
             if serial_port:
                 try:
                     serial_port.write((message + "\n").encode())
-                    serial_port.flush()  # Force l'envoi immédiat
+                    # serial_port.flush()  # Avoid blocking flush, let the OS handle buffering
+                except serial.SerialTimeoutException:
+                     print("[WARN] Serial write failed: Write timeout")
+                     # Optional: Reset buffers if persistent timeout?
+                     # serial_port.reset_output_buffer() 
                 except Exception as e:
                     print(f"[WARN] Serial write failed: {e}")
 
