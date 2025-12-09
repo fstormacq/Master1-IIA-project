@@ -349,10 +349,15 @@ def arduino_communication_thread(debug=False, simulate=False):
                 try:
                     serial_port.write((message + "\n").encode())
                     # serial_port.flush()  # Avoid blocking flush, let the OS handle buffering
+                    
+                    # Debug: Show what is sent to Arduino
+                    if debug:
+                        print(f"📤 SENT: {message}")
+
                 except serial.SerialTimeoutException:
                      print("[WARN] Serial write failed: Write timeout")
-                     # Optional: Reset buffers if persistent timeout?
-                     # serial_port.reset_output_buffer() 
+                     # Reset buffers if persistent timeout
+                     serial_port.reset_output_buffer() 
                 except Exception as e:
                     print(f"[WARN] Serial write failed: {e}")
 

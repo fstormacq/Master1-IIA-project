@@ -268,15 +268,18 @@ def start_video_capture(debug=False):
             history_center.append(frame_data['distances']['centre'])
             history_right.append(frame_data['distances']['droite'])
             
-            distance_left_smooth   = np.nanmedian(history_left) 
-            distance_center_smooth = np.nanmedian(history_center)
-            distance_right_smooth  = np.nanmedian(history_right)
-            
-            # Replace NaNs with safe distance (5.0m) to avoid crashes downstream
-            if np.isnan(distance_left_smooth): distance_left_smooth = 5.0
-            if np.isnan(distance_center_smooth): distance_center_smooth = 5.0
-            if np.isnan(distance_right_smooth): distance_right_smooth = 5.0
+            # Safe median calculation to avoid RuntimeWarning with all-NaN slices
+            def safe_median(data_deque):
+                if not data_deque: return 5.0
+                # Convert to array to check for all-NaN
+                arr = np.array(data_deque)
+                if np.all(np.isnan(arr)): return 5.0
+                return float(np.nanmedian(arr))
 
+            distance_left_smooth   = safe_median(history_left)
+            distance_center_smooth = safe_median(history_center)
+            distance_right_smooth  = safe_median(history_right)
+            
             mode = Danger_zone(distance_center_smooth)
             distance = {'Gauche': distance_left_smooth, 'Centre': distance_center_smooth, 'Droite': distance_right_smooth}
             
@@ -316,9 +319,10 @@ def start_video_capture(debug=False):
 
             queue_manager.put_video_data(video_data)
             
-            if debug:
+            # Enhanced Debug: Print what the camera sees every 15 frames (approx 1 sec)
+            if debug and frame_count % 15 == 0:
                 sim_tag = "[SIM] " if USE_SIMULATION else ""
-                print(f"{sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
+                print(f"{sim_tag}👀 CAM: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m | Mode: {mode} | Obstacles: {obstacle_info}")
             
             #Periodic stats - made with github copilot
             if debug:
