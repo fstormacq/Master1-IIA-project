@@ -343,8 +343,8 @@ def arduino_communication_thread(debug=False, simulate=False):
             if serial_port:
                 serial_port.write((message + "\n").encode())
 
-                # if not simulate and debug:
-                print("✅ Message sent to Arduino: ", message)
+                if not simulate and debug:
+                    print("✅ Message sent to Arduino: ", message)
             
             if debug:
                 print(f"➡️  Arduino: {message}")
