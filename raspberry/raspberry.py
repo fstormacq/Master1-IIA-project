@@ -341,7 +341,11 @@ def arduino_communication_thread(debug=False, simulate=False):
             }"""
             
             if serial_port:
-                serial_port.write((message + "\n").encode())
+                try:
+                    serial_port.write((message + "\n").encode())
+                    serial_port.flush()  # Force l'envoi immédiat
+                except Exception as e:
+                    print(f"[WARN] Serial write failed: {e}")
 
                 if not simulate and debug:
                     print("✅ Message sent to Arduino: ", message)

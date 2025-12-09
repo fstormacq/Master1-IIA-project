@@ -62,12 +62,7 @@ class SyncBuffer:
         
     def get_synchronized_pair(self):
         """
-        Find the best synchronized audio-video pair
-        
-        Returns
-        -------
-        Optional[Tuple[SensorData, SensorData]]
-            The best synchronized audio and video data pair, or None if not found
+        Find and REMOVE the best synchronized audio-video pair
         """
         current_time = time.time()
         self.cleanup_old_data(current_time)
@@ -77,16 +72,32 @@ class SyncBuffer:
             
         best_pair = None
         min_time_diff = float('inf')
+        best_audio_idx = None
+        best_video_idx = None
         
-        for audio_data in self.audio_buffer:
-            for video_data in self.video_buffer:
+        for i, audio_data in enumerate(self.audio_buffer):
+            for j, video_data in enumerate(self.video_buffer):
                 time_diff = abs(audio_data.timestamp - video_data.timestamp)
                 if time_diff < min_time_diff:
                     min_time_diff = time_diff
                     best_pair = (audio_data, video_data)
+                    best_audio_idx = i
+                    best_video_idx = j
                     
-        #Acceptable synchronization threshold (50ms)
+        # Acceptable synchronization threshold (50ms)
         if best_pair and min_time_diff < 0.05:
+            # IMPORTANT: Supprimer les données utilisées
+            if best_audio_idx is not None:
+                # Supprimer tous les éléments jusqu'à et incluant celui utilisé
+                for _ in range(best_audio_idx + 1):
+                    if self.audio_buffer:
+                        self.audio_buffer.popleft()
+            
+            if best_video_idx is not None:
+                for _ in range(best_video_idx + 1):
+                    if self.video_buffer:
+                        self.video_buffer.popleft()
+            
             return best_pair
             
         return None
