@@ -7,7 +7,7 @@ It will consume data from connected sensors and process it accordingly.
 """
 
 import threading, time, numpy as np
-#import serial
+import serial
 from raspberry.fake_serial import FakeSerial
 from queue import Empty
 from queue_manager import queue_manager
@@ -237,7 +237,7 @@ def video_processing_thread(debug=False):
         except Exception as e:
             print(f"Arduino communication error: {e}")"""
             
-def arduino_communication_thread(debug=False, simulate=True):
+def arduino_communication_thread(debug=False, simulate=False):
     """
     Centralized thread for Arduino synchronization and communication
     
@@ -253,9 +253,11 @@ def arduino_communication_thread(debug=False, simulate=True):
     3. Generates LCR messages
     4. Sends them to the Arduino
     """
+    serial_port = None
+
     if simulate:
-        serial_port = FakeSerial(log_file="lcr_log.txt", plot=True)
-    """else:
+        serial_port = FakeSerial(log_file="lcr_log.txt", plot=False)
+    else:
         # --- Open Arduino serial port ---
         try:
             serial_port = serial.Serial(
@@ -266,7 +268,7 @@ def arduino_communication_thread(debug=False, simulate=True):
             print("🔌 Serial port opened successfully")
         except Exception as e:
             print(f"[ERROR] Failed to open serial port: {e}")
-            serial_port = None"""
+
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
@@ -340,6 +342,9 @@ def arduino_communication_thread(debug=False, simulate=True):
             
             if serial_port:
                 serial_port.write((message + "\n").encode())
+
+                # if not simulate and debug:
+                print("✅ Message sent to Arduino")
             
             if debug:
                 print(f"➡️  Arduino: {message}")
@@ -350,7 +355,7 @@ def arduino_communication_thread(debug=False, simulate=True):
             print(f"Arduino communication error: {e}")
             time.sleep(0.01)
 
-def start_processing(no_audio=False, no_video=False, debug=False):
+def start_processing(no_audio=False, no_video=False, debug=False, simulate=False):
     """
     Function to start all processing threads
 
@@ -362,6 +367,8 @@ def start_processing(no_audio=False, no_video=False, debug=False):
         If True, video processing is disabled.
     debug : bool
         If True, enables debug mode with verbose logging.
+    simulate : bool
+        If True, uses FakeSerial instead of real serial communication.
     """
     print("Starting processing threads...")
     
@@ -375,7 +382,7 @@ def start_processing(no_audio=False, no_video=False, debug=False):
     if not no_video:
         video_thread = threading.Thread(target=video_processing_thread, args=(debug,), daemon=True)
     
-    arduino_thread = threading.Thread(target=arduino_communication_thread, args=(debug,), daemon=True)
+    arduino_thread = threading.Thread(target=arduino_communication_thread, args=(debug, simulate), daemon=True)
     
     if not no_audio and micro_thread:
         micro_thread.start()

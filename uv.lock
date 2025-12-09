@@ -60,6 +60,7 @@ dependencies = [
     { name = "numpy" },
     { name = "opencv-python" },
     { name = "pyrealsense2", marker = "platform_machine == 'x86_64'" },
+    { name = "pyserial" },
     { name = "sounddevice" },
 ]
 
@@ -68,6 +69,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.3.4" },
     { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "pyrealsense2", marker = "platform_machine == 'x86_64'", specifier = ">=2.56.5.9235" },
+    { name = "pyserial", specifier = ">=3.5" },
     { name = "sounddevice", specifier = ">=0.5.3" },
 ]
 
@@ -156,6 +158,15 @@ source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/66/fa706f1d906a06d5e7015d5b412a48de9914549792eb5cb53c1854e06427/pyrealsense2-2.56.5.9235-cp313-cp313-manylinux1_x86_64.whl", hash = "sha256:c203bc8c79d5958889681408f1038ee69b0021fd8cba7ff2d4532fc90295c4fc", size = 11062717, upload-time = "2025-07-28T14:59:30.072Z" },
     { url = "https://files.pythonhosted.org/packages/b2/88/19425ce6fa809d31a8d23f46dfa6aed9b16a881e8a00e0162d4b97ba1e64/pyrealsense2-2.56.5.9235-cp313-cp313-win_amd64.whl", hash = "sha256:ad8012f7fec843c3c6ec8904bfff048806dc7b4c7709e021c6ea75e83d8d5096", size = 7802471, upload-time = "2025-07-28T14:59:31.985Z" },
+]
+
+[[package]]
+name = "pyserial"
+version = "3.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb", size = 159125, upload-time = "2020-11-23T03:59:15.045Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0", size = 90585, upload-time = "2020-11-23T03:59:13.41Z" },
 ]
 
 [[package]]
