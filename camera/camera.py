@@ -23,7 +23,7 @@ RECT_MARGIN_X = 0.10
 W = 640
 H = 480
 
-FPS = 15
+FPS = 6
 
 #Global Variables
 CAMERA_RUNNING = False #Flag to indicate if the camera is running

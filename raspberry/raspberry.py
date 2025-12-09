@@ -301,7 +301,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             
             #Limit Arduino send frequency (max 25Hz)
             if (current_time - last_send_time) < send_interval:
-                time.sleep(0.001) 
+                time.sleep(0.02) # Sleep 20ms instead of 1ms to save CPU
                 continue
                 
             #Attempt to get synchronized data
