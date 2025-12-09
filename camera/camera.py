@@ -272,6 +272,11 @@ def start_video_capture(debug=False):
             distance_center_smooth = np.nanmedian(history_center)
             distance_right_smooth  = np.nanmedian(history_right)
             
+            # Replace NaNs with safe distance (5.0m) to avoid crashes downstream
+            if np.isnan(distance_left_smooth): distance_left_smooth = 5.0
+            if np.isnan(distance_center_smooth): distance_center_smooth = 5.0
+            if np.isnan(distance_right_smooth): distance_right_smooth = 5.0
+
             mode = Danger_zone(distance_center_smooth)
             distance = {'Gauche': distance_left_smooth, 'Centre': distance_center_smooth, 'Droite': distance_right_smooth}
             

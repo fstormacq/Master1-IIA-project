@@ -263,7 +263,8 @@ def arduino_communication_thread(debug=False, simulate=False):
             serial_port = serial.Serial(
                 port='/dev/ttyACM0',   #Adjust as necessary
                 baudrate=115200,
-                timeout=0.05
+                timeout=0.05,
+                write_timeout=0.2 # Timeout écriture augmenté
             )
             print("🔌 Serial port opened successfully")
         except Exception as e:
@@ -272,7 +273,7 @@ def arduino_communication_thread(debug=False, simulate=False):
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
-    send_interval = 1.0 / 25.0  #Max 25Hz sending rate
+    send_interval = 1.0 / 10.0  # Reduced to 10Hz to prevent Arduino buffer overflow
     
     print("🤖 Arduino communication thread started with synchronization")
     

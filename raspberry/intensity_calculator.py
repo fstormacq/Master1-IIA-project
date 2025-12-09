@@ -51,6 +51,10 @@ class IntensityCalculator:
         for zone in zones.keys():
             distance = distances.get(zone, 5.0)  #5m by default
             
+            # Handle NaN
+            if not isinstance(distance, (int, float)) or distance != distance: # Check for NaN
+                distance = 5.0
+
             #Intensity based on distance
             if distance > 2.0:
                 base_intensity = max(0, int((3.0 - distance) * 15))  #0-15 for >2m
