@@ -56,13 +56,20 @@ class IntensityCalculator:
                 distance = 5.0
 
             #Intensity based on distance
-            if distance > 2.0:
-                base_intensity = max(0, int((3.0 - distance) * 15))  #0-15 for >2m
-            elif distance > 1.0:
-                base_intensity = int(15 + (2.0 - distance) * 55)     #15-70 for 1-2m
+            # Nouvelle logique demandée : 0-50cm = Rouge (Danger max)
+            if distance <= 0.5:
+                base_intensity = 100  # Max danger immédiat
+            elif distance <= 1.0:
+                # De 0.5m à 1.0m : on passe de 100 à 70
+                # Formule linéaire : 100 - (dist - 0.5) * (30/0.5)
+                base_intensity = int(100 - (distance - 0.5) * 60)
+            elif distance <= 2.0:
+                # De 1.0m à 2.0m : on passe de 70 à 15
+                base_intensity = int(70 - (distance - 1.0) * 55)
             else:
-                base_intensity = int(70 + (1.0 - distance) * 30)     #70-100 for <1m
-            
+                # Au delà de 2m : faible intensité
+                base_intensity = max(0, int((3.0 - distance) * 15))
+
             #For obstacles
             zone_mapping = {'gauche': 'Gauche', 'centre': 'Centre', 'droite': 'Droite'}
             if zone_mapping[zone] in obstacles:

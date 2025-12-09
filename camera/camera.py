@@ -239,9 +239,10 @@ def start_video_capture(debug=False):
             DEPTH_SCALE = 0.001
             print("   Using simulated depth data")
         
-        history_center = deque(maxlen=FRAMES_HISTORY)  
-        history_left   = deque(maxlen=FRAMES_HISTORY) 
-        history_right  = deque(maxlen=FRAMES_HISTORY)
+        # Réduire l'historique pour plus de réactivité (3 frames au lieu de 5)
+        history_center = deque(maxlen=3)  
+        history_left   = deque(maxlen=3) 
+        history_right  = deque(maxlen=3)
         
         frame_count = 0
         start_time = time.time()
@@ -254,13 +255,15 @@ def start_video_capture(debug=False):
                 frame_data = process_frame(None)
                 time.sleep(1.0/FPS)  #Respect the framerate
             else:
-                frame = PIPELINE.wait_for_frames() 
-                depth_frame = frame.get_depth_frame() 
-                if not depth_frame:
-                    if debug:
-                        print('[DEBUG] No depth frame received, skipping...')
+                try:
+                    # Timeout réduit pour ne pas bloquer si une frame saute
+                    frame = PIPELINE.wait_for_frames(timeout_ms=500) 
+                    depth_frame = frame.get_depth_frame() 
+                    if not depth_frame:
+                        continue
+                    frame_data = process_frame(depth_frame)
+                except RuntimeError:
                     continue
-                frame_data = process_frame(depth_frame)
                 
             frame_count += 1
             
