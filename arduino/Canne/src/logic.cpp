@@ -8,7 +8,7 @@ void parseAndApply(String msg) {
     int L = 0, C = 0, R = 0;
 
     // Extraction des valeurs
-    int ok = sscanf(msg.c_str(), "L%d C%d R%d", &L, &C, &R);
+    int ok = sscanf(msg.c_str(), "L%dC%dR%d", &L, &C, &R);
 
     if (ok != 3) {
         Serial.println("[ERROR] Invalid format. Expected: Lxx Cxx Rxx");
