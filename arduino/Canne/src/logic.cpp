@@ -11,7 +11,7 @@ void parseAndApply(String msg) {
     int ok = sscanf(msg.c_str(), "L%dC%dR%d", &L, &C, &R);
 
     if (ok != 3) {
-        Serial.println("[ERROR] Invalid format. Expected: Lxx Cxx Rxx");
+        // Serial.println("[ERROR] Invalid format. Expected: Lxx Cxx Rxx");
         return;
     }
 

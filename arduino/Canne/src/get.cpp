@@ -5,15 +5,18 @@ bool TEST_MODE = false;
 
 String getCommand() {
     if (TEST_MODE) {
-        // Exemple de test manuel
         return "L100C100R50";
     }
 
-    if (Serial.available()) {
+    String lastCmd = "";
+    
+    while (Serial.available()) {
         String cmd = Serial.readStringUntil('\n');
         cmd.trim();
-        return cmd;
+        if (cmd.length() > 0) {
+            lastCmd = cmd;
+        }
     }
 
-    return "";
+    return lastCmd;
 }
