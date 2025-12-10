@@ -12,10 +12,10 @@ import traceback
 
 
 #Camera parameters
-DISTANCE_AREA_ATTENTION = 2.0
-DISTANCE_AREA_ALERT = 1.0
+DISTANCE_AREA_ATTENTION = 5.0
+DISTANCE_AREA_ALERT = 1.5
 
-FRAMES_HISTORY = 5     
+FRAMES_HISTORY = 10     
 
 RECT_MARGIN_Y = 0.10
 RECT_MARGIN_X = 0.10
@@ -78,10 +78,10 @@ def simulate_realsense_data():
     This function generates random distances to mimic the behavior of a RealSense camera. 
     Usage of this function is intended for testing when the actual camera hardware is not available, or on macOS systems.
     """
-    #Generate random distances between 0.5m and 4.0m
-    center_dist = np.random.uniform(1.5, 4.0) 
-    left_dist = np.random.uniform(1.0, 3.5)
-    right_dist = np.random.uniform(1.2, 4.2)
+    #Generate random distances between 0.5m and 6.0m
+    center_dist = np.random.uniform(1.5, 6.0) 
+    left_dist = np.random.uniform(1.0, 5.5)
+    right_dist = np.random.uniform(1.2, 6.2)
     
     #Generate occasional obstacles
     if np.random.random() < 0.1: 
@@ -127,9 +127,9 @@ def Danger_zone(distance):
     if np.isnan(distance):
         return "paisible"
     if distance < DISTANCE_AREA_ALERT:
-        return "alerte y a un truc a moins d 1 metre"
+        return "alerte y a un truc a moins d 1.5 metre"
     if distance <= DISTANCE_AREA_ATTENTION:
-        return "attention y a un truc a moins d 2 metre"
+        return "attention y a un truc a moins d 5 metre"
     
     return "paisible"
 
@@ -240,9 +240,9 @@ def start_video_capture(debug=False):
             print("   Using simulated depth data")
         
         # Réduire l'historique pour plus de réactivité (3 frames au lieu de 5)
-        history_center = deque(maxlen=3)  
-        history_left   = deque(maxlen=3) 
-        history_right  = deque(maxlen=3)
+        history_center = deque(maxlen=FRAMES_HISTORY)  
+        history_left   = deque(maxlen=FRAMES_HISTORY) 
+        history_right  = deque(maxlen=FRAMES_HISTORY)
         
         frame_count = 0
         start_time = time.time()
