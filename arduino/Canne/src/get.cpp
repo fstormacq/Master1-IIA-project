@@ -5,7 +5,7 @@ bool TEST_MODE = false;
 
 String getCommand() {
     if (TEST_MODE) {
-        return "L020C100R50";
+        return "L100C100R50";
     }
 
     String lastCmd = "";

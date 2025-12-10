@@ -263,8 +263,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             serial_port = serial.Serial(
                 port='/dev/ttyACM0',   #Adjust as necessary
                 baudrate=115200,
-                timeout=0.05,
-                write_timeout=0.1 # Timeout écriture (CRITIQUE)
+                timeout=0.05
             )
             print("🔌 Serial port opened successfully")
         except Exception as e:
@@ -344,9 +343,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             if serial_port:
                 try:
                     serial_port.write((message + "\n").encode())
-                    # serial_port.flush()  # Force l'envoi immédiat
-                except serial.SerialTimeoutException:
-                    print("[WARN] Arduino write timeout")
+                    serial_port.flush()  # Force l'envoi immédiat
                 except Exception as e:
                     print(f"[WARN] Serial write failed: {e}")
 

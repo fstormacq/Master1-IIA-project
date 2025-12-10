@@ -187,23 +187,6 @@ def process_frame(depth_frame):
         'timestamp': time.time()
     }
 
-def hardware_reset_realsense():
-    """Force un reset matériel de la caméra via pyrealsense2"""
-    print("♻️  Tentative de reset matériel de la RealSense...")
-    try:
-        ctx = rs.context()
-        devices = ctx.query_devices()
-        for dev in devices:
-            try:
-                dev.hardware_reset()
-                print(f"   Reset envoyé à {dev.get_info(rs.camera_info.name)}")
-            except Exception as e:
-                print(f"   Erreur reset: {e}")
-        # Attendre que la caméra redémarre et se reconnecte à l'USB
-        time.sleep(2.0)
-    except Exception as e:
-        print(f"Impossible de reset la caméra: {e}")
-
 def start_video_capture(debug=False):
     """
     Start capturing video from the RealSense camera or simulate data if not available.
@@ -227,13 +210,6 @@ def start_video_capture(debug=False):
     
     CAMERA_RUNNING = True
     
-    # Tenter un reset avant de commencer si on n'est pas explicitement en simulation
-    # Note: check_realsense_available sera appelé juste après
-    try:
-        hardware_reset_realsense()
-    except Exception:
-        pass
-
     realsense_available = check_realsense_available()
     
     if realsense_available:
@@ -278,18 +254,13 @@ def start_video_capture(debug=False):
                 frame_data = process_frame(None)
                 time.sleep(1.0/FPS)  #Respect the framerate
             else:
-                try:
-                    # Timeout pour éviter le blocage infini si la caméra déconnecte
-                    frame = PIPELINE.wait_for_frames(timeout_ms=2000) 
-                    depth_frame = frame.get_depth_frame() 
-                    if not depth_frame:
-                        if debug:
-                            print('[DEBUG] No depth frame received, skipping...')
-                        continue
-                    frame_data = process_frame(depth_frame)
-                except RuntimeError as e:
-                    print(f"❌ Erreur RealSense (Frame drop): {e}")
+                frame = PIPELINE.wait_for_frames() 
+                depth_frame = frame.get_depth_frame() 
+                if not depth_frame:
+                    if debug:
+                        print('[DEBUG] No depth frame received, skipping...')
                     continue
+                frame_data = process_frame(depth_frame)
                 
             frame_count += 1
             

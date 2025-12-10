@@ -10,10 +10,10 @@ class QueueManager:
     
     def __init__(self):
         #Separate queue for microphone audio data
-        self.micro_queue = Queue(maxsize=5)
+        self.micro_queue = Queue(maxsize=10)
         
         #Separate queue for camera video data
-        self.video_queue = Queue(maxsize=5)
+        self.video_queue = Queue(maxsize=10)
         
         #Separate queue for processed data to be sent to the Arduino
         self.arduino_queue = Queue(maxsize=5)
@@ -32,23 +32,6 @@ class QueueManager:
         self.total_arduino_count = 0
         self.total_audio_processed_count = 0
         self.total_video_processed_count = 0
-
-    def _put_non_blocking(self, queue_obj, data, dropped_counter_attr):
-        """Méthode générique pour ajouter sans bloquer (écrase les vieilles données)"""
-        try:
-            queue_obj.put_nowait((data, time.time()))
-        except Full:
-            # La queue est pleine, on retire l'élément le plus vieux
-            try:
-                queue_obj.get_nowait()
-                # On incrémente le compteur de drop associé
-                current_drops = getattr(self, dropped_counter_attr)
-                setattr(self, dropped_counter_attr, current_drops + 1)
-                
-                # On réessaie d'ajouter
-                queue_obj.put_nowait((data, time.time()))
-            except (Empty, Full):
-                pass # Cas rare de concurrence, on ignore
         
     def put_micro_data(self, data: Any):
         '''
@@ -60,7 +43,24 @@ class QueueManager:
             The audio data chunk to be added to the queue
         '''
         self.total_micro_count += 1
-        self._put_non_blocking(self.micro_queue, data, 'dropped_micro_count')
+        
+        try:
+            self.micro_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_micro_count += 1
+            print(f"MICRO Queue full! Dropped: {self.dropped_micro_count}/{self.total_micro_count}")
+            
+            # Drop oldest data
+            for i in range(min(3, self.micro_queue.qsize())):
+                try:
+                    self.micro_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.micro_queue.put_nowait((data, time.time()))
+            except Full:
+                print("Micro queue still full!")
     
     def get_micro_data(self, timeout=1.0):
         '''
@@ -89,7 +89,24 @@ class QueueManager:
             The video data chunk to be added to the queue
         '''
         self.total_video_count += 1
-        self._put_non_blocking(self.video_queue, data, 'dropped_video_count')
+        
+        try:
+            self.video_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_video_count += 1
+            print(f"VIDEO Queue full! Dropped: {self.dropped_video_count}/{self.total_video_count}")
+            
+            # Drop oldest data
+            for i in range(min(3, self.video_queue.qsize())):
+                try:
+                    self.video_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.video_queue.put_nowait((data, time.time()))
+            except Full:
+                print("Video queue still full!")
     
     def get_video_data(self, timeout=1.0):
         '''
@@ -118,7 +135,23 @@ class QueueManager:
             The command to be added to the Arduino queue
         '''
         self.total_arduino_count += 1
-        self._put_non_blocking(self.arduino_queue, command, 'dropped_arduino_count')
+        
+        try:
+            self.arduino_queue.put_nowait((command, time.time()))
+        except Full:
+            self.dropped_arduino_count += 1
+            print(f"ARDUINO Queue full! Dropped: {self.dropped_arduino_count}/{self.total_arduino_count}")
+            
+            for i in range(min(2, self.arduino_queue.qsize())):
+                try:
+                    self.arduino_queue.get_nowait()
+                except Empty:
+                    break
+            
+            try:
+                self.arduino_queue.put_nowait((command, time.time()))
+            except Full:
+                print("Arduino queue still full!")
     
     def get_arduino_data(self, timeout=1.0):
         '''
@@ -147,7 +180,17 @@ class QueueManager:
             The processed audio data to be added to the queue
         """
         self.total_audio_processed_count += 1
-        self._put_non_blocking(self.audio_processed_queue, data, 'dropped_audio_processed_count')
+        
+        try:
+            self.audio_processed_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_audio_processed_count += 1
+            #Drop oldest data
+            try:
+                self.audio_processed_queue.get_nowait()
+                self.audio_processed_queue.put_nowait((data, time.time()))
+            except Empty:
+                pass
 
     def get_audio_processed_data(self, timeout=0.01):
         """
@@ -176,7 +219,17 @@ class QueueManager:
             The processed video data to be added to the queue
         """
         self.total_video_processed_count += 1
-        self._put_non_blocking(self.video_processed_queue, data, 'dropped_video_processed_count')
+        
+        try:
+            self.video_processed_queue.put_nowait((data, time.time()))
+        except Full:
+            self.dropped_video_processed_count += 1
+            # Drop oldest data
+            try:
+                self.video_processed_queue.get_nowait()
+                self.video_processed_queue.put_nowait((data, time.time()))
+            except Empty:
+                pass
 
     def get_video_processed_data(self, timeout=0.01):
         """
