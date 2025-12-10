@@ -3,69 +3,47 @@
 #include <FastLED.h>
 
 #define LED_PIN     9
-#define NUM_LEDS    12
+#define NUM_LEDS    3
 #define BRIGHTNESS  64
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
-int upperPin = 10;
-int rightPin = 11;
-int leftPin  = 12;   
-
 void setupPins() {
-    pinMode(upperPin, OUTPUT);
-    pinMode(rightPin, OUTPUT);
-    pinMode(leftPin,  OUTPUT);
-
-    // Initialisation FastLED
+    // Initialisation FastLED uniquement
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(BRIGHTNESS);
 
     stopAll();
 }
 
-// Helper: Convertit l'intensité (0-100) en couleur (Vert -> Jaune -> Rouge)
+// Helper: Convertit l'intensité (0-255) en couleur (Vert -> Jaune -> Rouge)
 CRGB getColorFromIntensity(int intensity) {
-    // Si très faible intensité, on peut éteindre ou mettre du vert très faible
-    if (intensity <= 5) return CRGB::Green; 
+    // Si très faible intensité, éteindre
+    if (intensity <= 5) return CRGB::Black; 
     
     // Mapping HSV : 
     // Hue 96 (Vert) -> Hue 0 (Rouge)
-    // On mappe 0-100 vers 96-0
-    int hue = map(intensity, 0, 100, 96, 0);
-    return CHSV(hue, 255, 255);
+    // On mappe 0-255 vers 96-0
+    int hue = map(intensity, 0, 255, 96, 0);
+    int brightness = map(intensity, 0, 255, 50, 255); // Luminosité variable
+    return CHSV(hue, 255, brightness);
 }
 
 void stopAll() {
-    analogWrite(upperPin, 0);
-    analogWrite(rightPin, 0);
-    analogWrite(leftPin,  0);
-
     fill_solid(leds, NUM_LEDS, CRGB::Black);
     FastLED.show();
 }
 
 void applyIntensity(int leftVal, int centerVal, int rightVal) {
-    // Vibration (PWM)
-    analogWrite(leftPin,   leftVal);
-    analogWrite(upperPin,  centerVal);
-    analogWrite(rightPin,  rightVal);
-
-    // Gestion des LEDs (suppose un bandeau de 12 LEDs divisé en 3 zones)
-    int zoneSize = NUM_LEDS / 3;
-
-    // Zone Gauche
-    CRGB colorL = getColorFromIntensity(leftVal);
-    for(int i=0; i<zoneSize; i++) leds[i] = colorL;
-
-    // Zone Centre
-    CRGB colorC = getColorFromIntensity(centerVal);
-    for(int i=zoneSize; i<zoneSize*2; i++) leds[i] = colorC;
-
-    // Zone Droite
-    CRGB colorR = getColorFromIntensity(rightVal);
-    for(int i=zoneSize*2; i<NUM_LEDS; i++) leds[i] = colorR;
+    // 3 LEDs : une par zone
+    // LED 0 = Gauche
+    // LED 1 = Centre
+    // LED 2 = Droite
+    
+    leds[0] = getColorFromIntensity(leftVal);   // Gauche
+    leds[1] = getColorFromIntensity(centerVal); // Centre
+    leds[2] = getColorFromIntensity(rightVal);  // Droite
 
     FastLED.show();
 }
