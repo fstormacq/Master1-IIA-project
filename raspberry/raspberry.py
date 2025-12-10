@@ -146,16 +146,6 @@ def micro_processing_thread(debug=False):
             processing_count += 1
             
             result = heavy_audio_processing(chunk, debug)
-            """
-            # Commande Arduino pour l'audio
-            arduino_command = {
-                'type': 'audio_alert',
-                'db_level': result['db_level'],
-                'classification': result['sound_classification'],
-                'rms': result['rms'],
-                'frequency': result['dominant_frequency']
-            }
-            queue_manager.put_arduino_data(arduino_command)"""
             
             queue_manager.put_audio_processed_data(result)
             
@@ -188,18 +178,6 @@ def video_processing_thread(debug=False):
             processing_count += 1
             
             result = heavy_video_processing(video_data, debug)
-
-            """arduino_command = {
-                'type': 'vision_alert',
-                'mode': result['mode'],
-                'danger_level': result['danger_level'],
-                'risk_classification': result['risk_classification'],
-                'obstacle_info': result['obstacle_info'],
-                'avoid_direction': result['avoid_direction'],
-                'distances': result['distances']
-            }
-            
-            queue_manager.put_arduino_data(arduino_command)"""
             
             queue_manager.put_video_processed_data(result)
             
@@ -212,30 +190,6 @@ def video_processing_thread(debug=False):
             continue
         except Exception as e:
             print(f"Video processing error: {e}")
-
-"""def arduino_communication_thread(debug=False):
-    
-    Processing thread dedicated to Arduino communication
-
-    Parameters
-    ----------
-    debug : bool
-        If True, enables debug mode with verbose logging.
-
-    Notes
-    -----
-    This thread continuously fetches commands from the queue and sends them to the Arduino.
-    
-    while True:
-        try:
-            command = queue_manager.get_arduino_data(timeout=1.0)
-            # print(f"Sending to Arduino: {command}")
-            # Here: real serial communication
-            
-        except Empty:
-            continue
-        except Exception as e:
-            print(f"Arduino communication error: {e}")"""
             
 def arduino_communication_thread(debug=False, simulate=False):
     """
@@ -260,7 +214,6 @@ def arduino_communication_thread(debug=False, simulate=False):
     else:
         # --- Open Arduino serial port ---
         try:
-            print("🔌 Opening serial port to Arduino...")
             serial_port = serial.Serial(
                 port='/dev/ttyACM0',   #Adjust as necessary
                 baudrate=115200,
@@ -273,7 +226,7 @@ def arduino_communication_thread(debug=False, simulate=False):
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
-    send_interval = 1.0 / 25.0  #Max 25Hz
+    send_interval = 1.0 / 25.0  # Max 25Hz
     
     print("🤖 Arduino communication thread started with synchronization")
     
@@ -281,26 +234,26 @@ def arduino_communication_thread(debug=False, simulate=False):
         try:
             current_time = time.time()
             
-            #Collect new audio data
+            # Collect new audio data
             try:
                 audio_result = queue_manager.get_audio_processed_data(timeout=0.01)
                 sync_buffer.add_audio(audio_result)
             except Empty:
                 pass
             
-            #Collect new video data
+            # Collect new video data
             try:
                 video_result = queue_manager.get_video_processed_data(timeout=0.01)
                 sync_buffer.add_video(video_result)
             except Empty:
                 pass
             
-            #Limit Arduino send frequency (max 25Hz)
+            # Limit Arduino send frequency (max 25Hz)
             if (current_time - last_send_time) < send_interval:
                 time.sleep(0.001) 
                 continue
                 
-            #Attempt to get synchronized data
+            # Attempt to get synchronized data
             sync_pair = sync_buffer.get_synchronized_pair()
             message = None
 
@@ -309,8 +262,6 @@ def arduino_communication_thread(debug=False, simulate=False):
                 message = message_generator.generate_synchronized_message(
                     audio_data.data, video_data.data
                 )
-
-                print("Message in Sync Pair: ", message)
                 
                 sync_quality = 'synced'
                 if debug:
@@ -337,21 +288,24 @@ def arduino_communication_thread(debug=False, simulate=False):
                             "video" if latest_video and not latest_audio else "both_unsync"
                     print(f"[WARNING] FALLBACK {message} (source: {source})")
             
-            if message:
+            if message and debug:
                 print(f"📤 ABOUT TO SEND: '{message}' (len={len(message)}, repr={repr(message)})")
                     
             if serial_port:
                 try:
                     message_bytes = (message + "\n").encode()
-                    print(f"📤 ENCODED BYTES: {message_bytes}")
+                    
+                    if debug:
+                        print(f"📤 ENCODED BYTES: {message_bytes}")
+
                     serial_port.write(message_bytes)
                     serial_port.flush()
-                    print(f"✅ SENT: '{message}'")
+                    
+                    if debug:
+                        print(f"✅ SENT: '{message}'")
+
                 except Exception as e:
                     print(f"[WARN] Serial write failed: {e}")
-
-            if not simulate and debug:
-                print("✅ Message sent to Arduino: ", message)
             
             if debug:
                 print(f"➡️  Arduino: {message}")

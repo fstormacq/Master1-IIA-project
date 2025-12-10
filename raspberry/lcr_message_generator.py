@@ -47,21 +47,13 @@ class LCRMessageGenerator:
                 video_data.get('obstacles', [])
             )
         
-        #Merge intensities-Strategy: Maximum + Global Audio
-        left_intensity = max(
-            vision_intensities['gauche'],
-            int(audio_intensity * 0.7)  #Reduced audio influence on sides
-        )
+        # Use weighted average: 80% vision, 20% audio
+
+        left_intensity = (4 * vision_intensities['gauche'] + int(audio_intensity * 0.7)) / 5
         
-        center_intensity = max(
-            vision_intensities['centre'],
-            audio_intensity  #Full audio influence at center
-        )
+        center_intensity = (4 * vision_intensities['centre'] + int(audio_intensity)) / 5
         
-        right_intensity = max(
-            vision_intensities['droite'],
-            int(audio_intensity * 0.7) #Reduced audio influence on sides
-        )
+        right_intensity = (4 * vision_intensities['droite'] + int(audio_intensity * 0.7)) / 5
         
         message = f"L{left_intensity:03d}C{center_intensity:03d}R{right_intensity:03d}"
         

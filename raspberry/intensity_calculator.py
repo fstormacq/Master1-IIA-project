@@ -49,17 +49,17 @@ class IntensityCalculator:
         zones = {'gauche': 0, 'centre': 0, 'droite': 0}
         
         for zone in zones.keys():
-            distance = distances.get(zone, 5.0)  #5m by default
+            distance = distances.get(zone, 5.0)  # 5m by default
             
-            #Intensity based on distance
+            # Intensity based on distance
             if distance > 2.0:
-                base_intensity = max(0, int((3.0 - distance) * 15))  #0-15 for >2m
+                base_intensity = max(0, int((3.0 - distance) * 15))  # 0-15 for >2m
             elif distance > 1.0:
-                base_intensity = int(15 + (2.0 - distance) * 55)     #15-70 for 1-2m
+                base_intensity = int(15 + (2.0 - distance) * 55)     # 15-70 for 1-2m
             else:
-                base_intensity = int(70 + (1.0 - distance) * 30)     #70-100 for <1m
+                base_intensity = int(70 + (1.0 - distance) * 30)     # 70-100 for <1m
             
-            #For obstacles
+            # For obstacles
             zone_mapping = {'gauche': 'Gauche', 'centre': 'Centre', 'droite': 'Droite'}
             if zone_mapping[zone] in obstacles:
                 base_intensity += 20
