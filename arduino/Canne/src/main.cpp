@@ -16,5 +16,5 @@ void loop() {
         parseAndApply(cmd);   // traite immédiatement et écrase l’ancienne
     }
 
-    // Rien d’autre à gérer : la vibration reste active tant qu’on reçoit des commandes
+    delay(10); // avoid to saturate the serial buffer
 }
