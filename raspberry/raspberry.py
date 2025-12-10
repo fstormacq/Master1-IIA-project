@@ -260,6 +260,7 @@ def arduino_communication_thread(debug=False, simulate=False):
     else:
         # --- Open Arduino serial port ---
         try:
+            print("🔌 Opening serial port to Arduino...")
             serial_port = serial.Serial(
                 port='/dev/ttyACM0',   #Adjust as necessary
                 baudrate=115200,
@@ -272,7 +273,7 @@ def arduino_communication_thread(debug=False, simulate=False):
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
-    send_interval = 1.0 / 25.0  #Max 25Hz sending rate
+    send_interval = 1.0 / 25.0  #Max 25Hz
     
     print("🤖 Arduino communication thread started with synchronization")
     
@@ -301,12 +302,15 @@ def arduino_communication_thread(debug=False, simulate=False):
                 
             #Attempt to get synchronized data
             sync_pair = sync_buffer.get_synchronized_pair()
-            
+            message = None
+
             if sync_pair:
                 audio_data, video_data = sync_pair
                 message = message_generator.generate_synchronized_message(
                     audio_data.data, video_data.data
                 )
+
+                print("Message in Sync Pair: ", message)
                 
                 sync_quality = 'synced'
                 if debug:
@@ -332,20 +336,18 @@ def arduino_communication_thread(debug=False, simulate=False):
                             "video" if latest_video and not latest_audio else "both_unsync"
                     print(f"[WARNING] FALLBACK {message} (source: {source})")
             
-            """
-            arduino_command = {
-                'type': 'LCR_command',
-                'message': message,
-                'timestamp': current_time,
-                'sync_quality': sync_quality
-            }"""
-            
-            if serial_port:
-                try:
-                    serial_port.write((message + "\n").encode())
-                    serial_port.flush()  # Force l'envoi immédiat
-                except Exception as e:
-                    print(f"[WARN] Serial write failed: {e}")
+                if message:
+                    print(f"📤 ABOUT TO SEND: '{message}' (len={len(message)}, repr={repr(message)})")
+                    
+                if serial_port:
+                    try:
+                        message_bytes = (message + "\n").encode()
+                        print(f"📤 ENCODED BYTES: {message_bytes}")
+                        serial_port.write(message_bytes)
+                        serial_port.flush()
+                        print(f"✅ SENT: '{message}'")
+                    except Exception as e:
+                        print(f"[WARN] Serial write failed: {e}")
 
                 if not simulate and debug:
                     print("✅ Message sent to Arduino: ", message)
