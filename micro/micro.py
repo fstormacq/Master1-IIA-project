@@ -94,9 +94,8 @@ def start_audio_capture(debug=False, device_id=None, simulate=False):
                 break
 
     if device_id is None:
-        raise RuntimeError(f"{DEVICE_NAME} not found.")        if debug:
-            print(f"Found audio device: {devices[device_id]['name']} (ID: {device_id})")
-
+        raise RuntimeError(f"{DEVICE_NAME} not found.")        
+    
     if debug:
         print(f"Starting audio capture on device {device_id}...")
 
