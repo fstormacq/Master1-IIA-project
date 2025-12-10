@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-#define LED_PIN     6
+#define LED_PIN     9
 #define NUM_LEDS    12
 #define BRIGHTNESS  64
 #define LED_TYPE    WS2812B
