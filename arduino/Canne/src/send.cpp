@@ -10,19 +10,31 @@
 CRGB leds[NUM_LEDS];
 
 void setupPins() {
-    // ✅ Initialisation FastLED
+
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(BRIGHTNESS);
 
-    // ✅ TEST DE VALIDATION MATÉRIEL : allume toutes les LEDs en ROUGE pendant 2 secondes
+    // 🔴 TEST DE DÉMARRAGE : Allume les LEDs en ROUGE pendant 2 secondes
+    Serial.println("[LED] Test de démarrage - LEDs en ROUGE pendant 2s");
     fill_solid(leds, NUM_LEDS, CRGB::Red);
     FastLED.show();
     delay(2000);
     
-    // ✅ Éteint les LEDs après le test
-    stopAll();
+    // Puis test en VERT pendant 1 seconde
+    Serial.println("[LED] Test VERT pendant 1s");
+    fill_solid(leds, NUM_LEDS, CRGB::Green);
+    FastLED.show();
+    delay(1000);
     
-    Serial.println("[LED] Test de démarrage terminé - LEDs opérationnelles");
+    // Puis test en BLEU pendant 1 seconde
+    Serial.println("[LED] Test BLEU pendant 1s");
+    fill_solid(leds, NUM_LEDS, CRGB::Blue);
+    FastLED.show();
+    delay(1000);
+
+    // Éteint tout après le test
+    stopAll();
+    Serial.println("[LED] Tests terminés - LEDs éteintes");
 }
 
 // Helper: Convertit l'intensité (0-255) en couleur (Vert -> Jaune -> Rouge)
@@ -44,10 +56,6 @@ void stopAll() {
 }
 
 void applyIntensity(int leftVal, int centerVal, int rightVal) {
-    // 3 LEDs : une par zone
-    // LED 0 = Gauche
-    // LED 1 = Centre
-    // LED 2 = Droite
     
     leds[0] = getColorFromIntensity(leftVal);   // Gauche
     leds[1] = getColorFromIntensity(centerVal); // Centre
@@ -55,7 +63,7 @@ void applyIntensity(int leftVal, int centerVal, int rightVal) {
 
     FastLED.show();
     
-    // ✅ DEBUG : affiche les valeurs appliquées (utile pour diagnostiquer)
+    // Debug : affiche les valeurs appliquées
     Serial.print("[LED] L:");
     Serial.print(leftVal);
     Serial.print(" C:");
