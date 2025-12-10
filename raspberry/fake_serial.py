@@ -1,6 +1,5 @@
 import time
-import random
-from threading import Thread, Lock
+from threading import Lock
 import matplotlib.pyplot as plt
 from collections import deque
 
@@ -44,11 +43,11 @@ class FakeSerial:
         """
         message = message_bytes.decode().strip()
         with self.lock:
-            #Log to file
+            # Log to file
             with open(self.log_file, "a") as f:
                 f.write(f"{time.time():.3f} {message}\n")
             
-            #Parse LCR values
+            # Parse LCR values
             try:
                 L = int(message[1:4])
                 C = int(message[5:8])
@@ -61,10 +60,10 @@ class FakeSerial:
             self.R_values.append(R)
             self.times.append(time.time())
             
-            #Print fake serial
+            # Print fake serial
             print(f"[FAKE SERIAL] {message}")
             
-            #Update plot
+            # Update plot
             if self.plot:
                 self.update_plot()
     
@@ -80,6 +79,10 @@ class FakeSerial:
         self.ax.autoscale_view()
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
+    
+    def flush(self):
+        """Simulate serial flush operation"""
+        pass
     
     def close(self):
         self.running = False

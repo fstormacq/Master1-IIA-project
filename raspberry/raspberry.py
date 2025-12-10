@@ -6,7 +6,9 @@ The raspberry pi will act as a central hub for various sensors and sensorial out
 It will consume data from connected sensors and process it accordingly.
 """
 
-import threading, time, numpy as np
+import threading
+import time
+import numpy as np
 import serial
 from raspberry.fake_serial import FakeSerial
 from queue import Empty
@@ -35,7 +37,7 @@ def heavy_audio_processing(chunk, debug=False):
 
     rms = np.sqrt(np.mean(chunk**2))
     
-    #Computing dB level
+    # Computing dB level
     ref = 1.0      #Reference for dBFS (normalized float audio)
     eps = 1e-12    #Avoid log10(0)
     level = max(rms / ref, eps)
@@ -44,7 +46,7 @@ def heavy_audio_processing(chunk, debug=False):
     if not np.isfinite(niveau_db):
         niveau_db = -np.inf
     
-    #Sound level classification
+    # Sound level classification
     if niveau_db < -45:
         sound_label = "Chillax"
     elif niveau_db < -30:
@@ -54,7 +56,7 @@ def heavy_audio_processing(chunk, debug=False):
     else:
         sound_label = "Danger"
     
-    #Main frequency detection
+    # Main frequency detection
     fft_result = np.fft.fft(chunk)
     dominant_freq = np.argmax(np.abs(fft_result[:len(fft_result)//2]))
     if debug:
@@ -94,7 +96,7 @@ def heavy_video_processing(video_data, debug=False):
     obstacles = video_data['obstacles']
     distances = video_data['distances_smooth']
     
-    #Severity level determination
+    # Severity level determination
     danger_level = 0
     if 'Centre' in obstacles:
         danger_level = 3  #Critique
@@ -103,7 +105,7 @@ def heavy_video_processing(video_data, debug=False):
     elif len(obstacles) == 1:
         danger_level = 1  #Warning
     
-    #Risk classification
+    # Risk classification
     risk_classification = "safe"
     if danger_level == 3:
         risk_classification = "critical"
@@ -112,7 +114,7 @@ def heavy_video_processing(video_data, debug=False):
     elif danger_level == 1:
         risk_classification = "medium"
     
-    #Need to minimize the data sent to Arduino
+    # Minimize data sent to Arduino
     return {
         'mode': mode,
         'obstacle_info': video_data['obstacle_info'],
@@ -212,10 +214,10 @@ def arduino_communication_thread(debug=False, simulate=False):
     if simulate:
         serial_port = FakeSerial(log_file="lcr_log.txt", plot=False)
     else:
-        # --- Open Arduino serial port ---
+        # Open Arduino serial port
         try:
             serial_port = serial.Serial(
-                port='/dev/ttyACM0',   #Adjust as necessary
+                port='/dev/ttyACM0',  # Adjust as necessary
                 baudrate=115200,
                 timeout=0.05
             )
@@ -268,7 +270,7 @@ def arduino_communication_thread(debug=False, simulate=False):
                     print(f"🔄 SYNC {message} (Δt={time_diff*1000:.1f}ms)")
                     
             else:
-                #Fallback to latest available data
+                # Fallback to latest available data
                 latest_audio_sensor = sync_buffer.get_latest_audio()
                 latest_video_sensor = sync_buffer.get_latest_video()
                 
@@ -334,7 +336,7 @@ def start_processing(no_audio=False, no_video=False, debug=False, simulate=False
     """
     print("Starting processing threads...")
     
-    #Initialize thread variables
+    # Initialize thread variables
     micro_thread = None
     video_thread = None
     

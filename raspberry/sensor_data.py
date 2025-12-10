@@ -8,4 +8,4 @@ class SensorData:
     """
     timestamp: float
     data: Dict[Any, Any]
-    source: str  #'audio' ou 'video'
+    source: str  # 'audio' or 'video'

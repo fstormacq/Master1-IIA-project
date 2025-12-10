@@ -9,13 +9,13 @@ class QueueManager:
     """
     
     def __init__(self):
-        #Separate queue for microphone audio data
+        # Separate queue for microphone audio data
         self.micro_queue = Queue(maxsize=10)
         
-        #Separate queue for camera video data
+        # Separate queue for camera video data
         self.video_queue = Queue(maxsize=10)
         
-        #Separate queue for processed data to be sent to the Arduino
+        # Separate queue for processed data to be sent to the Arduino
         self.arduino_queue = Queue(maxsize=5)
         
         self.audio_processed_queue = Queue(maxsize=5)
@@ -51,7 +51,7 @@ class QueueManager:
             print(f"MICRO Queue full! Dropped: {self.dropped_micro_count}/{self.total_micro_count}")
             
             # Drop oldest data
-            for i in range(min(3, self.micro_queue.qsize())):
+            for _ in range(min(3, self.micro_queue.qsize())):
                 try:
                     self.micro_queue.get_nowait()
                 except Empty:
@@ -97,7 +97,7 @@ class QueueManager:
             print(f"VIDEO Queue full! Dropped: {self.dropped_video_count}/{self.total_video_count}")
             
             # Drop oldest data
-            for i in range(min(3, self.video_queue.qsize())):
+            for _ in range(min(3, self.video_queue.qsize())):
                 try:
                     self.video_queue.get_nowait()
                 except Empty:
@@ -142,7 +142,7 @@ class QueueManager:
             self.dropped_arduino_count += 1
             print(f"ARDUINO Queue full! Dropped: {self.dropped_arduino_count}/{self.total_arduino_count}")
             
-            for i in range(min(2, self.arduino_queue.qsize())):
+            for _ in range(min(2, self.arduino_queue.qsize())):
                 try:
                     self.arduino_queue.get_nowait()
                 except Empty:
@@ -185,7 +185,7 @@ class QueueManager:
             self.audio_processed_queue.put_nowait((data, time.time()))
         except Full:
             self.dropped_audio_processed_count += 1
-            #Drop oldest data
+            # Drop oldest data
             try:
                 self.audio_processed_queue.get_nowait()
                 self.audio_processed_queue.put_nowait((data, time.time()))

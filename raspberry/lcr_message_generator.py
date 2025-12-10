@@ -47,8 +47,7 @@ class LCRMessageGenerator:
                 video_data.get('obstacles', [])
             )
         
-        # Use weighted average: 80% vision, 20% audio
-
+        # Use weighted average: 80% vision, 20% audio (reduced for lateral zones)
         left_intensity = (4 * vision_intensities['gauche'] + int(audio_intensity * 0.7)) / 5
         
         center_intensity = (4 * vision_intensities['centre'] + int(audio_intensity)) / 5

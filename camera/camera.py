@@ -1,21 +1,17 @@
-#note a faire changer les noms des variables en francais pour etre cohérent avec le reste du code (??? => l'inverse nan ?)
-#note changer le gauhe droite devant car le gauche est devant le milieu est guche et droite est droite 
-#prendre en compte que seul la zone au milieu est prise en compte pour le mode si il y'a du dangerq
-
-import pyrealsense2 as rs #type: ignore
+import pyrealsense2 as rs  # type: ignore
 import numpy as np 
-import cv2 # ?
+import cv2  # Used for OpenCV operations (if visualization is needed in future)
 import time
 from collections import deque
 from queue_manager import queue_manager
 import traceback
 
 
-#Camera parameters
+# Camera parameters
 DISTANCE_AREA_ATTENTION = 2.0
 DISTANCE_AREA_ALERT = 1.0
 
-FRAMES_HISTORY = 5     
+FRAMES_HISTORY = 5
 
 RECT_MARGIN_Y = 0.10
 RECT_MARGIN_X = 0.10
@@ -25,13 +21,13 @@ H = 480
 
 FPS = 15
 
-#Global Variables
-CAMERA_RUNNING = False #Flag to indicate if the camera is running
+# Global Variables
+CAMERA_RUNNING = False  # Flag to indicate if the camera is running
 
 PIPELINE = None
 DEPTH_SCALE = None
 
-USE_SIMULATION = True  #Flag to simulate RealSense data when camera is not available
+USE_SIMULATION = True  # Flag to simulate RealSense data when camera is not available
 
 def check_realsense_available(pyrealsense=True):
     """
@@ -78,12 +74,12 @@ def simulate_realsense_data():
     This function generates random distances to mimic the behavior of a RealSense camera. 
     Usage of this function is intended for testing when the actual camera hardware is not available, or on macOS systems.
     """
-    #Generate random distances between 0.5m and 4.0m
+    # Generate random distances between 0.5m and 4.0m
     center_dist = np.random.uniform(1.5, 4.0) 
     left_dist = np.random.uniform(1.0, 3.5)
     right_dist = np.random.uniform(1.2, 4.2)
     
-    #Generate occasional obstacles
+    # Generate occasional obstacles
     if np.random.random() < 0.1: 
         center_dist = np.random.uniform(0.3, 0.9)
     
@@ -111,7 +107,7 @@ def median_calculator(zone_pixels):
         The median distance in meters for the zone. Returns NaN if no valid pixels are found.
     """
     if USE_SIMULATION:
-        return np.random.uniform(1.0, 4.0)  #Simulated distance 
+        return np.random.uniform(1.0, 4.0)  # Simulated distance 
         
     array = zone_pixels.astype(np.float32) * DEPTH_SCALE 
     valid_array = array[array > 0] 
@@ -157,7 +153,7 @@ def process_frame(depth_frame):
             'timestamp': sim_data['timestamp']
         }
     
-    #Standard RealSense mode
+    # Standard RealSense mode
     depth = np.asanyarray(depth_frame.get_data()) 
     h, w = depth.shape 
     y1, y2 = int(RECT_MARGIN_Y*h), int((1-RECT_MARGIN_Y)*h)        
@@ -216,7 +212,7 @@ def start_video_capture(debug=False):
         print("Starting RealSense camera capture...")
         USE_SIMULATION = False
     else:
-        print("[WARNING] RealSense not available - using simulation mode")
+        print("[SIMULATION] RealSense not available - using simulation mode")
         USE_SIMULATION = True
     
     print(f"   Resolution: {W}x{H}")
@@ -225,7 +221,6 @@ def start_video_capture(debug=False):
 
     try:
         if not USE_SIMULATION:
-
             PIPELINE = rs.pipeline() 
             config = rs.config() 
             config.enable_stream(rs.stream.depth, W, H, rs.format.z16, FPS) 
@@ -235,8 +230,7 @@ def start_video_capture(debug=False):
 
             print(f"   Depth scale: {DEPTH_SCALE}")
         else:
-            #Simulation mode
-            DEPTH_SCALE = 0.001
+            # Simulation mode001
             print("   Using simulated depth data")
         
         history_center = deque(maxlen=FRAMES_HISTORY)  
@@ -252,7 +246,7 @@ def start_video_capture(debug=False):
         while CAMERA_RUNNING:
             if USE_SIMULATION:
                 frame_data = process_frame(None)
-                time.sleep(1.0/FPS)  #Respect the framerate
+                time.sleep(1.0/FPS)  # Respect the framerate
             else:
                 frame = PIPELINE.wait_for_frames() 
                 depth_frame = frame.get_depth_frame() 
@@ -292,7 +286,7 @@ def start_video_capture(debug=False):
 
             avoid_danger = max(distance, key=lambda k: np.nan_to_num(distance[k], nan=-1.0))
             
-            #Need to minimize data sent to queue 
+            # Minimize data sent to queue 
             video_data = {
                 'frame_number': frame_count,
                 'mode': mode,
@@ -315,7 +309,7 @@ def start_video_capture(debug=False):
                 sim_tag = "[SIM] " if USE_SIMULATION else ""
                 print(f"{sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
             
-            #Periodic stats - made with github copilot
+            # Periodic stats - Made with Cppilot
             if debug:
                 elapsed = time.time() - start_time
                 if elapsed > 0 and frame_count % 100 == 0:

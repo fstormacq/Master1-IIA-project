@@ -72,7 +72,7 @@ def start_audio_capture(debug=False, device_id=None, simulate=False):
     
     if simulate:
         if debug:
-            print("[WARNING] Microphone not found, starting audio simulation...")
+            print("[SIMULATION] Starting audio simulation mode...")
         try:
             while True:
                 chunk = simulate_audio_chunk()
@@ -84,7 +84,7 @@ def start_audio_capture(debug=False, device_id=None, simulate=False):
             audio_running = False
         return
 
-    #If no device_id provided, search for the device
+    # If no device_id provided, search for the device
     if device_id is None:
         devices = sd.query_devices() 
         
@@ -93,10 +93,8 @@ def start_audio_capture(debug=False, device_id=None, simulate=False):
                 device_id = i
                 break
 
-        if device_id is None:
-            raise RuntimeError(f"{DEVICE_NAME} can't be found.")
-        
-        if debug:
+    if device_id is None:
+        raise RuntimeError(f"{DEVICE_NAME} not found.")        if debug:
             print(f"Found audio device: {devices[device_id]['name']} (ID: {device_id})")
 
     if debug:

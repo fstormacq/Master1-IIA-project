@@ -86,9 +86,9 @@ class SyncBuffer:
                     
         # Acceptable synchronization threshold (50ms)
         if best_pair and min_time_diff < 0.05:
-            # IMPORTANT: Supprimer les données utilisées
+            # IMPORTANT: Remove used data
             if best_audio_idx is not None:
-                # Supprimer tous les éléments jusqu'à et incluant celui utilisé
+                # Remove all elements up to and including the one used
                 for _ in range(best_audio_idx + 1):
                     if self.audio_buffer:
                         self.audio_buffer.popleft()

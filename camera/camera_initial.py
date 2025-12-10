@@ -88,7 +88,7 @@ try:
 
         if len(obstacle) == 0:
             obstacle_info = "Aucun"
-        if len(obstacle) == 1:
+        elif len(obstacle) == 1:
             obstacle_info = obstacle[0]
         else:
             obstacle_info = ' et '.join(obstacle)
