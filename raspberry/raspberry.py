@@ -255,7 +255,6 @@ def arduino_communication_thread(debug=False, simulate=False):
                 
             # Attempt to get synchronized data
             sync_pair = sync_buffer.get_synchronized_pair()
-            message = None
 
             if sync_pair:
                 audio_data, video_data = sync_pair
