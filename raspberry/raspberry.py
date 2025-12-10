@@ -312,13 +312,9 @@ def arduino_communication_thread(debug=False, simulate=False):
             last_send_time = current_time
             
         except Exception as e:
-            if e == "Unknown format code 'd' for object of type 'float'":
-                pass  #Ignore formatting errors
-            else:
-                print(f"Arduino communication error: {e}")
-                if 'message' in locals():
-                    print(f"Last message: {message}")
-            
+            print(f"Arduino communication error: {e}")
+            if 'message' in locals():
+                print(f"Last message: {message}")
             time.sleep(0.01)
 
 def start_processing(no_audio=False, no_video=False, debug=False, simulate=False):
