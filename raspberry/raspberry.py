@@ -331,26 +331,27 @@ def arduino_communication_thread(debug=False, simulate=False):
                 )
                 
                 sync_quality = 'fallback'
+
                 if debug and (latest_audio or latest_video):
                     source = "audio" if latest_audio and not latest_video else \
                             "video" if latest_video and not latest_audio else "both_unsync"
                     print(f"[WARNING] FALLBACK {message} (source: {source})")
             
-                if message:
-                    print(f"📤 ABOUT TO SEND: '{message}' (len={len(message)}, repr={repr(message)})")
+            if message:
+                print(f"📤 ABOUT TO SEND: '{message}' (len={len(message)}, repr={repr(message)})")
                     
-                if serial_port:
-                    try:
-                        message_bytes = (message + "\n").encode()
-                        print(f"📤 ENCODED BYTES: {message_bytes}")
-                        serial_port.write(message_bytes)
-                        serial_port.flush()
-                        print(f"✅ SENT: '{message}'")
-                    except Exception as e:
-                        print(f"[WARN] Serial write failed: {e}")
+            if serial_port:
+                try:
+                    message_bytes = (message + "\n").encode()
+                    print(f"📤 ENCODED BYTES: {message_bytes}")
+                    serial_port.write(message_bytes)
+                    serial_port.flush()
+                    print(f"✅ SENT: '{message}'")
+                except Exception as e:
+                    print(f"[WARN] Serial write failed: {e}")
 
-                if not simulate and debug:
-                    print("✅ Message sent to Arduino: ", message)
+            if not simulate and debug:
+                print("✅ Message sent to Arduino: ", message)
             
             if debug:
                 print(f"➡️  Arduino: {message}")
