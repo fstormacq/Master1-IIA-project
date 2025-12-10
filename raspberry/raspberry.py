@@ -263,21 +263,16 @@ def arduino_communication_thread(debug=False, simulate=False):
             serial_port = serial.Serial(
                 port='/dev/ttyACM0',   #Adjust as necessary
                 baudrate=115200,
-                timeout=0.05,
-                write_timeout=0.2 # Timeout écriture augmenté
+                timeout=0.05
             )
-            print("🔌 Serial port opened successfully. Waiting for Arduino reset...")
-            time.sleep(2.0) # Wait for Arduino to reset
-            serial_port.reset_input_buffer()
-            serial_port.reset_output_buffer()
-            print("✅ Arduino ready")
+            print("🔌 Serial port opened successfully")
         except Exception as e:
             print(f"[ERROR] Failed to open serial port: {e}")
 
     sync_buffer = SyncBuffer(max_age_ms=150)
     message_generator = LCRMessageGenerator()
     last_send_time = 0
-    send_interval = 1.0 / 10.0  # Reduced to 10Hz to prevent Arduino buffer overflow
+    send_interval = 1.0 / 25.0  #Max 25Hz sending rate
     
     print("🤖 Arduino communication thread started with synchronization")
     
@@ -301,7 +296,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             
             #Limit Arduino send frequency (max 25Hz)
             if (current_time - last_send_time) < send_interval:
-                time.sleep(0.02) # Sleep 20ms instead of 1ms to save CPU
+                time.sleep(0.001) 
                 continue
                 
             #Attempt to get synchronized data
@@ -348,16 +343,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             if serial_port:
                 try:
                     serial_port.write((message + "\n").encode())
-                    # serial_port.flush()  # Avoid blocking flush, let the OS handle buffering
-                    
-                    # Debug: Show what is sent to Arduino
-                    if debug:
-                        print(f"📤 SENT: {message}")
-
-                except serial.SerialTimeoutException:
-                     print("[WARN] Serial write failed: Write timeout")
-                     # Reset buffers if persistent timeout
-                     serial_port.reset_output_buffer() 
+                    serial_port.flush()  # Force l'envoi immédiat
                 except Exception as e:
                     print(f"[WARN] Serial write failed: {e}")
 

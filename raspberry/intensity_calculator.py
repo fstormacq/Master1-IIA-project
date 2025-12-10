@@ -51,26 +51,14 @@ class IntensityCalculator:
         for zone in zones.keys():
             distance = distances.get(zone, 5.0)  #5m by default
             
-            # Handle NaN
-            if not isinstance(distance, (int, float)) or distance != distance: # Check for NaN
-                distance = 5.0
-
             #Intensity based on distance
-            # Nouvelle logique demandée : plus sensible et portée étendue
-            if distance <= 1.2:
-                base_intensity = 100  # Max danger immédiat
-            elif distance <= 2.5:
-                # De 1.2m à 2.5m : on passe de 100 à 60
-                # Formule linéaire : 100 - (dist - 1.2) * (40/1.3)
-                base_intensity = int(100 - (distance - 1.2) * 30)
-            elif distance <= 4.0:
-                # De 2.5m à 4.0m : on passe de 60 à 20
-                # Formule linéaire : 60 - (dist - 2.5) * (40/1.5)
-                base_intensity = int(60 - (distance - 2.5) * 26)
+            if distance > 2.0:
+                base_intensity = max(0, int((3.0 - distance) * 15))  #0-15 for >2m
+            elif distance > 1.0:
+                base_intensity = int(15 + (2.0 - distance) * 55)     #15-70 for 1-2m
             else:
-                # Au delà de 4m jusqu'à 5m : faible intensité
-                base_intensity = max(0, int((5.0 - distance) * 20))
-
+                base_intensity = int(70 + (1.0 - distance) * 30)     #70-100 for <1m
+            
             #For obstacles
             zone_mapping = {'gauche': 'Gauche', 'centre': 'Centre', 'droite': 'Droite'}
             if zone_mapping[zone] in obstacles:

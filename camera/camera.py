@@ -12,10 +12,10 @@ import traceback
 
 
 #Camera parameters
-DISTANCE_AREA_ATTENTION = 5.0
-DISTANCE_AREA_ALERT = 1.5
+DISTANCE_AREA_ATTENTION = 2.0
+DISTANCE_AREA_ALERT = 1.0
 
-FRAMES_HISTORY = 10     
+FRAMES_HISTORY = 5     
 
 RECT_MARGIN_Y = 0.10
 RECT_MARGIN_X = 0.10
@@ -23,7 +23,7 @@ RECT_MARGIN_X = 0.10
 W = 640
 H = 480
 
-FPS = 6
+FPS = 15
 
 #Global Variables
 CAMERA_RUNNING = False #Flag to indicate if the camera is running
@@ -78,10 +78,10 @@ def simulate_realsense_data():
     This function generates random distances to mimic the behavior of a RealSense camera. 
     Usage of this function is intended for testing when the actual camera hardware is not available, or on macOS systems.
     """
-    #Generate random distances between 0.5m and 6.0m
-    center_dist = np.random.uniform(1.5, 6.0) 
-    left_dist = np.random.uniform(1.0, 5.5)
-    right_dist = np.random.uniform(1.2, 6.2)
+    #Generate random distances between 0.5m and 4.0m
+    center_dist = np.random.uniform(1.5, 4.0) 
+    left_dist = np.random.uniform(1.0, 3.5)
+    right_dist = np.random.uniform(1.2, 4.2)
     
     #Generate occasional obstacles
     if np.random.random() < 0.1: 
@@ -127,9 +127,9 @@ def Danger_zone(distance):
     if np.isnan(distance):
         return "paisible"
     if distance < DISTANCE_AREA_ALERT:
-        return "alerte y a un truc a moins d 1.5 metre"
+        return "alerte y a un truc a moins d 1 metre"
     if distance <= DISTANCE_AREA_ATTENTION:
-        return "attention y a un truc a moins d 5 metre"
+        return "attention y a un truc a moins d 2 metre"
     
     return "paisible"
 
@@ -239,7 +239,6 @@ def start_video_capture(debug=False):
             DEPTH_SCALE = 0.001
             print("   Using simulated depth data")
         
-        # Réduire l'historique pour plus de réactivité (3 frames au lieu de 5)
         history_center = deque(maxlen=FRAMES_HISTORY)  
         history_left   = deque(maxlen=FRAMES_HISTORY) 
         history_right  = deque(maxlen=FRAMES_HISTORY)
@@ -255,15 +254,13 @@ def start_video_capture(debug=False):
                 frame_data = process_frame(None)
                 time.sleep(1.0/FPS)  #Respect the framerate
             else:
-                try:
-                    # Timeout réduit pour ne pas bloquer si une frame saute
-                    frame = PIPELINE.wait_for_frames(timeout_ms=500) 
-                    depth_frame = frame.get_depth_frame() 
-                    if not depth_frame:
-                        continue
-                    frame_data = process_frame(depth_frame)
-                except RuntimeError:
+                frame = PIPELINE.wait_for_frames() 
+                depth_frame = frame.get_depth_frame() 
+                if not depth_frame:
+                    if debug:
+                        print('[DEBUG] No depth frame received, skipping...')
                     continue
+                frame_data = process_frame(depth_frame)
                 
             frame_count += 1
             
@@ -271,17 +268,9 @@ def start_video_capture(debug=False):
             history_center.append(frame_data['distances']['centre'])
             history_right.append(frame_data['distances']['droite'])
             
-            # Safe median calculation to avoid RuntimeWarning with all-NaN slices
-            def safe_median(data_deque):
-                if not data_deque: return 5.0
-                # Convert to array to check for all-NaN
-                arr = np.array(data_deque)
-                if np.all(np.isnan(arr)): return 5.0
-                return float(np.nanmedian(arr))
-
-            distance_left_smooth   = safe_median(history_left)
-            distance_center_smooth = safe_median(history_center)
-            distance_right_smooth  = safe_median(history_right)
+            distance_left_smooth   = np.nanmedian(history_left) 
+            distance_center_smooth = np.nanmedian(history_center)
+            distance_right_smooth  = np.nanmedian(history_right)
             
             mode = Danger_zone(distance_center_smooth)
             distance = {'Gauche': distance_left_smooth, 'Centre': distance_center_smooth, 'Droite': distance_right_smooth}
@@ -322,10 +311,9 @@ def start_video_capture(debug=False):
 
             queue_manager.put_video_data(video_data)
             
-            # Enhanced Debug: Print what the camera sees every 15 frames (approx 1 sec)
-            if debug and frame_count % 15 == 0:
+            if debug:
                 sim_tag = "[SIM] " if USE_SIMULATION else ""
-                print(f"{sim_tag}👀 CAM: G={distance_left_smooth:.2f}m C={distance_center_smooth:.2f}m D={distance_right_smooth:.2f}m | Mode: {mode} | Obstacles: {obstacle_info}")
+                print(f"{sim_tag}Video frame #{frame_count}: {mode}, Obstacles: {obstacle_info}")
             
             #Periodic stats - made with github copilot
             if debug:
