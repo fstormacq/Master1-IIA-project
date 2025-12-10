@@ -313,6 +313,7 @@ def arduino_communication_thread(debug=False, simulate=False):
             last_send_time = current_time
             
         except Exception as e:
+            print(f"Message processing error: {message}")
             print(f"Arduino communication error: {e}")
             time.sleep(0.01)
 
