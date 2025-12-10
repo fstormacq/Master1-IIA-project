@@ -10,11 +10,19 @@
 CRGB leds[NUM_LEDS];
 
 void setupPins() {
-    // Initialisation FastLED uniquement
+    // ✅ Initialisation FastLED
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(BRIGHTNESS);
 
+    // ✅ TEST DE VALIDATION MATÉRIEL : allume toutes les LEDs en ROUGE pendant 2 secondes
+    fill_solid(leds, NUM_LEDS, CRGB::Red);
+    FastLED.show();
+    delay(2000);
+    
+    // ✅ Éteint les LEDs après le test
     stopAll();
+    
+    Serial.println("[LED] Test de démarrage terminé - LEDs opérationnelles");
 }
 
 // Helper: Convertit l'intensité (0-255) en couleur (Vert -> Jaune -> Rouge)
@@ -46,4 +54,12 @@ void applyIntensity(int leftVal, int centerVal, int rightVal) {
     leds[2] = getColorFromIntensity(rightVal);  // Droite
 
     FastLED.show();
+    
+    // ✅ DEBUG : affiche les valeurs appliquées (utile pour diagnostiquer)
+    Serial.print("[LED] L:");
+    Serial.print(leftVal);
+    Serial.print(" C:");
+    Serial.print(centerVal);
+    Serial.print(" R:");
+    Serial.println(rightVal);
 }
