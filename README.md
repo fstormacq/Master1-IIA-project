@@ -100,7 +100,7 @@ uv run main.py --simulate
 ```
 
 ### Arduino Setup
-1. Upload code from `arduino/Canne/` using PlatformIO
+1. Upload code from `./arduino/` using PlatformIO
 2. Install FastLED library
 3. Connect LED strip to pin 9
 4. Ensure serial port is `/dev/ttyACM0` (or adjust in code)
