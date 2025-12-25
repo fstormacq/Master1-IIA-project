@@ -1,0 +1,353 @@
+\documentclass[sigconf]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%%
+%% Rights management information. 
+
+\copyrightyear{2025}
+\acmYear{2025}
+\setcopyright{rightsretained}
+\acmConference[AIM 2025]{Proceedings of the UNamur
+Symposium on Advanced Interaction Methods}{December 25,
+2025}{Namur, Belgium}
+\acmBooktitle{Proceedings of the UNamur
+Symposium on Advanced Interaction Methods (AIM 2025 Proceedings), December 25, 2025,
+Namur, Belgium}\acmDOI{00.0000/0000000.0000000}
+\acmISBN{000-0-0000-0000-0/00/00}
+
+%%
+%% Packages
+
+\usepackage{xspace}
+\usepackage{xcolor}
+\newcommand{\ie}{\textit{i.e.},\xspace}
+\newcommand{\eg}[0]{\textit{e.g.},\xspace}
+\newcommand{\vs}[0]{\textit{vs.}\xspace}
+\newcommand{\etal}{\textit{et al.}\xspace}
+
+\begin{document}
+
+%%
+%% Title
+
+\title[Adaptive Cane]{Adaptive Cane for Visually Impaired People}
+
+%%
+%% Authors
+
+\author{Simon Dourte}
+\email{simon.dourte@student.unamur.be}
+
+\author{Edwyn Eben}
+\email{edwyn.eben@student.unamur.be}
+
+\author{Nathan Lambrechts}
+\email{nathan.lambrechts@student.unamur.be}
+
+\author{Louca Mathieu}
+\email{louca.mathieu@student.unamur.be}
+
+\author{Florian Stormacq}
+\email{florian.stormacq@student.unamur.be}
+
+\affiliation{
+  \institution{University of Namur, Namur Digital Institute (NaDI) and Research Center on Information Systems Engineering (PReCISE)}
+  \city{Namur}
+  \country{Belgium}
+}
+
+\renewcommand{\shortauthors}{Lambrechts et al.}
+
+%%
+%% Teaser figure
+
+\begin{teaserfigure}
+    \centering
+    \vspace{-10pt}
+    \includegraphics[width=0.5\textwidth,alt={Adaptive cane system overview}]{../figures/adaptive-cane-system-final.jpeg}
+    \vspace{-15pt}
+    \caption{Overview of the Adaptive Cane System with Intel RealSense camera, microphone, Raspberry Pi processing unit, and haptic feedback motors}
+    \label{fig:teaser}
+\end{teaserfigure}
+
+%%
+%% Abstract
+
+\begin{abstract}
+People with visual impairments represent a significant proportion of the global population. It is estimated that at least 2.2 billion people have some form of vision impairment. It is therefore essential to develop solutions that meet their needs and improve their independence. With this in mind, this project presents an adaptive connected cane for blind or visually impaired people designed to improve their perception of their surroundings and increase their safety in the face of potential obstacles and dangers. The cane is based on two main sensors: an Intel RealSense D435 depth camera and a USB microphone. The data from these sensors is processed in real time by a Raspberry Pi 3. The microphone assesses the noise level of the environment, while the camera detects the position and distance of obstacles and the recommended area to avoid them. This information is used to determine one of the device's three alert modes. User feedback is provided by three vibrating motors, each associated with a direction. The intensity and duration of the vibrations indicate the proximity of the danger and guide the user as they move. This prototype is therefore an assistance solution aimed at improving the mobility and safety of blind or visually impaired people in their daily lives.
+\end{abstract}
+
+%%
+%% Keywords and Concepts
+
+\begin{CCSXML}
+\textit{The CCS concepts will be completed later.}
+\end{CCSXML}
+
+\maketitle
+
+%%
+%% Introduction
+
+\section{Introduction}
+
+The goal of the project is to develop an adaptive smart cane designed to improve spatial awareness and safety for visually impaired people. The system relies on two main sensors: a depth camera and a microphone to detect obstacles or danger in real-time. The data is collected by a Raspberry Pi which analyzes visual and audio information from the environment.
+
+The system focuses entirely on haptic feedback. A set of 3 vibration motors is placed on the cane to provide tactile information to the user. Each motor has a direction which means one direction is missing. Indeed, we have left out the back direction because the camera will be settled as glasses so they cannot see behind the user. The vibration intensity and duration reflect the proximity of the danger, allowing the user to interpret the environment with the haptic output.
+
+This cane aims to support blind people during urban navigation or any activity that has potential danger to the user.
+
+%%
+%% Related work
+
+\section{Related work}
+
+% ============================================================================
+% TODO: TO BE COMPLETED BY TEAM MEMBERS - URGENT
+% ============================================================================
+% Please conduct literature review and add:
+% - Existing assistive devices for visually impaired people
+% - Multimodal navigation systems
+% - Haptic feedback research
+% - Similar projects using depth cameras and/or audio sensors
+% - Key differences between existing work and our approach
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Related Work section to be completed - literature review needed]}}
+
+\textit{Note: A preliminary reference exists about haptic feedback for navigation. This needs to be expanded significantly.}
+
+%%
+%% Methodology
+
+\section{Methodology}
+
+The project is structured into several key components to ensure optimal functionality, performance, and maintainability.
+
+\subsection{Project Architecture}
+
+\subsubsection{Sensors}
+
+% ============================================================================
+% TODO: TO BE COMPLETED BY TEAM MEMBERS
+% ============================================================================
+% Please describe:
+% - Audio Sensor (Microphone): USB device specifications, setup, and purpose
+% - Video Sensor (Intel RealSense Camera): Camera model, connection, capabilities
+% - Technical specifications and configuration details
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Audio and Video Sensor sections to be completed by team members]}}
+
+\subsubsection{Processing Unit}
+
+The processing unit used is a Raspberry Pi 3, which handles data acquisition, processing, and communication with the Arduino board. The Raspberry Pi runs multiple threads to manage audio and video data streams, synchronization, and command generation for the output layer.
+
+The producer-consumer architecture is implemented with separate queues for the audio, video, synchronization buffer, and Arduino commands. Each queue has a maximum size to prevent memory overflow: the microphone and video queues can hold up to 10 items each, while the Arduino command queue is limited to 5 items. The queues use a LIFO (Last-In-First-Out) strategy to ensure real-time performance by prioritizing the most recent data. To avoid blocking the processing and communication threads, when a queue reaches capacity, the three oldest items are automatically dropped, and the dropped count is tracked for monitoring purposes.
+
+This architecture allows for efficient and parallel processing of multimodal data, ensuring real-time feedback to the user. The system monitors queue statistics including total items processed, current queue sizes, and processing frequencies, which are logged every 10 seconds to track system performance.
+
+\textbf{Note:} This device is not the initial Raspberry Pi 1 that was furnished at the beginning of the project, as it was not powerful enough to handle the processing requirements.
+
+\subsubsection{Arduino Board}
+
+In this project, Arduino is used as an interface between the central processing unit (Raspberry Pi) and the physical actuators (vibration motors). It receives already-processed instructions that specify how the motors should behave.
+
+First, the Raspberry Pi sends data divided into three components: where the danger comes from, the intensity, and the duration of the vibration. The Arduino receives the information, interprets it, and converts it into appropriate signals for the vibration motors.
+
+In the overall architecture, the Arduino is responsible for executing the physical output (vibration motors) in real-time. It does not process data; it applies the received instructions for the vibration motors.
+
+\subsection{Project Implementation}
+
+First, to ensure an easy setup of the project, UV was used to manage the Python dependencies. All required libraries are listed in the \texttt{pyproject.toml} file, allowing for a straightforward installation process.
+
+\subsubsection{Code Structure}
+
+The codebase is organized into several modules, each responsible for a specific functionality of the system. The entry point of the project is the \texttt{main.py} script, which orchestrates the different threads. This script initializes and starts all the necessary threads for data acquisition, processing, communication, and monitoring of the sent data. The main script supports several command-line arguments: \texttt{--no-audio} to disable audio capture, \texttt{--no-video} to disable video capture, \texttt{--debug} to enable verbose logging, and \texttt{--simulate} to simulate inputs for testing purposes. Each producer (audio and video) runs as a daemon thread to ensure proper shutdown when the main process terminates.
+
+In addition to this main script, a secondary Python script (\texttt{monitor\_serial.py}) is provided to monitor the serial communication between the Raspberry Pi and the Arduino board. This lightweight monitoring script connects to the Arduino via \texttt{/dev/ttyACM0} at 115200 baud and displays all incoming messages in real-time. To facilitate the startup of the entire system along with the monitoring script, a shell script (\texttt{start.sh}) is provided that launches both the main system and the monitor simultaneously. The script captures the process ID of the main system and ensures proper cleanup when the monitor is stopped with Ctrl+C.
+
+\subsubsection{Queue Manager}
+
+To simplify the management of the queues used for inter-thread communication, a dedicated module was implemented: \texttt{queue\_manager.py}. This module creates a singleton class, \texttt{QueueManager}, which encapsulates the functionality of all queues used in the project. The \texttt{QueueManager} class initializes five separate queues: \texttt{micro\_queue} and \texttt{video\_queue} (maxsize=10) for raw sensor data, \texttt{audio\_processed\_queue} and \texttt{video\_processed\_queue} (maxsize=5) for processed features, and \texttt{arduino\_queue} (maxsize=5) for commands to be sent to the Arduino.
+
+Each queue is configured with a maximum size to prevent memory overflow. The module provides dedicated methods for adding and retrieving data from each queue (\texttt{put\_micro\_data ()}, \texttt{get\_micro\_data ()}, \texttt{put\_video\_data ()}, etc.). When adding data, the current timestamp is automatically attached as a tuple \texttt{(data, timestamp)} to facilitate temporal synchronization. The queue manager implements comprehensive monitoring, tracking both the total number of items processed and the number of dropped items for each queue. When a queue becomes full, the system drops the three oldest items before adding the new data, preventing blocking while maintaining real-time responsiveness. The \texttt{get\_queue\_stats ()} method provides detailed statistics about queue usage, enabling performance monitoring and system diagnostics. Encapsulating the queue management logic within a dedicated module simplifies the code, making it easier to understand and maintain.
+
+\subsubsection{Sensors Implementation}
+
+% ============================================================================
+% TODO: TO BE COMPLETED BY TEAM MEMBERS
+% ============================================================================
+% Please describe:
+% - Audio Sensor implementation details (sounddevice library, buffer management)
+% - Video Sensor implementation (pyrealsense2, depth processing, obstacle detection)
+% - Data capture workflow and real-time processing loop
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Audio and Video Sensor implementation sections to be completed by team members]}}
+
+\subsubsection{Raspberry Pi Module}
+
+As the Raspberry Pi is the core processing unit of the system, it hosts several modules that handle different aspects of data processing and communication.
+
+The \texttt{raspberry.py} module is the main module that integrates all functionalities, managing data flow between the audio and video modules, synchronization buffer, and Arduino communication.
+
+As discussed earlier, the project architecture is based on a producer-consumer model, with multiple threads handling different data streams. Each sensor modality has its own dedicated thread for data acquisition and pre-processing, which then feeds the shared queues.
+
+The \texttt{raspberry.py} script is responsible for all the heavy processing tasks. For audio data, the \texttt{heavy\_audio\_processing()} function computes the Root Mean Square (RMS) of the signal, converts it to dB level using the formula $20 \times \log_{10}(\text{rms} / \text{reference})$, and classifies the sound into four categories: "Chillax" (< -45 dB), "Some noise" (-45 to -30 dB), "Be Careful" (-30 to -15 dB), or "Danger" (> -15 dB). Additionally, it performs Fast Fourier Transform (FFT) analysis to detect the dominant frequency in the audio signal. For video data, the \texttt{heavy\_video\_processing()} function analyzes obstacle positions and distances, computing a danger level (0-3) based on the number and position of detected obstacles, with special priority given to center obstacles. The function also assigns risk classifications ("safe", "medium", "high", or "critical") corresponding to each danger level.
+
+The script runs separate processing threads for audio and video data (\texttt{micro\_processing\_thread()} and \texttt{video\_processing\_thread()}), each continuously consuming data from their respective queues. These processed results are then added to intermediate queues before being synchronized using the \texttt{sync\_buffer.py} module. Finally, commands are generated for the Arduino board based on the synchronized information, and these commands are sent via serial communication at 115200 baud.
+
+\paragraph{Synchronization Buffer:} 
+
+% ============================================================================
+% TODO: TO BE COMPLETED - Synchronization Buffer Details
+% ============================================================================
+% The sync_buffer.py module needs to be explained here. Please describe:
+% - Temporal synchronization mechanism between audio and video streams
+% - Buffer implementation (deques, timestamps, SensorData objects)
+% - Synchronization algorithm and threshold (50ms)
+% - Cleanup mechanism (150ms timeout)
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Add detailed explanation of sync\_buffer.py module and synchronization algorithm]}}
+
+\paragraph{Intensity Calculator:} 
+
+To adjust the output intensities based on the processed sensor data, the \texttt{intensity\_calculator.py} script is used. This module implements the \texttt{IntensityCalculator} class with two static methods for converting sensor data into intensity values ranging from 0 to 100.
+
+% ============================================================================
+% TODO: TO BE COMPLETED - Intensity Calculation Details
+% ============================================================================
+% Please expand on the conversion process from sensor data to intensity values:
+% - audio_to_intensity(): dB to intensity mapping (piecewise linear)
+% - vision_to_intensity_by_zone(): distance to intensity per zone (left/center/right)
+% - Specific thresholds and intensity ranges
+% - Obstacle boost mechanism (+20 points)
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Add detailed explanation of intensity calculation algorithms and thresholds]}}
+
+\paragraph{Message Generator:} 
+
+A final relevant module is the \texttt{lcr\_message\_generator.py}, which is responsible for formatting the computed intensity levels into the specific command protocol required by the Arduino board. This module implements the \texttt{LCRMessageGenerator} class that maintains state including the last sent message and a message counter for tracking.
+
+The command format used is \texttt{LxxxCxxxRxxx}, where \texttt{L}, \texttt{C}, and \texttt{R} represent the left, center, and right output intensities, respectively, each followed by a three-digit zero-padded intensity value (000-100). The module provides two generation methods: \texttt{generate\_synchronized\_message()} for cases where both audio and video data are available, and \texttt{generate\_fallback\_message()} for single-modality scenarios.
+
+The synchronization method implements a sophisticated weighted averaging scheme to merge audio and video intensities. For the center zone, the formula is: $(4 \times \text{vision\_intensity} + \text{audio\_intensity}) / 5$, giving 80\% weight to visual data and 20\% to audio. For lateral zones (left and right), audio influence is further reduced to 70\% of its original value: $(4 \times \text{vision\_intensity} + 0.7 \times \text{audio\_intensity}) / 5$. This weighting strategy prioritizes visual obstacle detection while still incorporating ambient sound information, particularly emphasizing visual data for the critical center zone where the user is heading. The weighted average calculation ensures smooth transitions between different environmental conditions.
+
+These weighting values can be modified in the \texttt{lcr\_message\_generator.py} module to adjust the system's sensitivity according to user preferences, and this opens the possibility for future improvements, such as implementing a user-tunable sensitivity setting.
+
+All these modules work together seamlessly to ensure that the system operates in real-time, providing appropriate feedback to the user based on the multimodal sensory input. The entire processing pipeline---from sensor data acquisition through queue management, processing, synchronization, intensity calculation, and message generation---is designed to maintain low latency and high responsiveness, crucial for assistive navigation applications.
+
+\subsubsection{Arduino Board Implementation}
+
+% ============================================================================
+% TODO: TO BE COMPLETED BY TEAM MEMBERS
+% ============================================================================
+% Please describe:
+% - Arduino board specifications and setup
+% - Serial communication protocol details (115200 baud, LxxxCxxxRxxx format)
+% - Command parsing and execution on Arduino side
+% - Output device control (LED strips as placeholder for vibration motors)
+% - Code organization (get.cpp, logic.cpp, send.cpp, main.cpp)
+% - Hardware considerations and voltage issues
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Arduino implementation section to be completed by team members]}}
+
+\textit{Note: The Arduino module receives pre-processed commands from the Raspberry Pi via serial communication at 115200 baud using the LxxxCxxxRxxx protocol format.}
+
+%%
+%% Contribution
+
+\section{Contribution}
+
+% ============================================================================
+% TODO: TO BE COMPLETED BY TEAM MEMBERS
+% ============================================================================
+
+\textcolor{red}{\textbf{[TODO: Contribution section to be completed by team members]}}
+
+\textit{Preliminary notes: The project introduces a multimodal approach combining depth and ambient audio information. Directional haptic feedback conveys both presence and position of obstacles.}
+
+%%
+%% Evaluation
+
+\section{Evaluation}
+
+The system was not evaluated in real-world conditions due to time constraints and the unavailability of certain hardware components. However, each prototype module was tested individually to ensure correct functionality. Additionally, the prototype was tested in a controlled environment to validate the overall system integration, as well as the visual feedback provided by the LED strip.
+
+%%
+%% Discussion
+
+\section{Discussion}
+
+\subsection{Limitations}
+
+To begin with, the choice of hardware components imposed certain limitations on the system's performance. To ensure real-time processing, the Raspberry Pi 3 was selected as the processing unit. To replicate this project, it is important to use a Raspberry Pi 3 or a more powerful model, as older versions struggle to handle the computational load of processing all sensor data in real-time.
+
+Another limitation of the prototype is the limited processing rate of the audio module. While the video module can process data at a rate of approximately 15 frames per second, the audio module is limited to processing only 6 items per second. This leads to a situation where audio data becomes the bottleneck for the overall system performance, as the synchronization buffer assembles data based on the produced timestamps. Consequently, the system can only provide updates at a maximum rate of 6 items per second, which may not be sufficient for fast-changing environments.
+
+A final limitation to consider is the absence of real-world testing with visually impaired users. Due to time constraints and the unavailability of certain hardware components, the system could not be evaluated in practical scenarios. Real-world testing is crucial for assessing the effectiveness and usability of the system, as well as for gathering feedback from actual users to inform future improvements.
+
+\subsection{Problems Encountered}
+
+During the development of this project, several challenges were encountered that required problem-solving and adaptation. Some of the most notable issues included:
+
+\begin{enumerate}
+\item Configuring the Raspberry Pi to work with the RealSense camera, which involved building the PyRealSense2 library from source. This process was time-consuming and error-prone, requiring careful attention to detail and extensive troubleshooting. For more information, please refer to the documentation provided in the GitHub repository.
+\item The initial project aimed to use vibration motors as output devices, one for each direction (left, center, right). These motors would have been placed on a handlebar to provide haptic feedback to the user. However, due to time limitations and difficulties in assembling the desired prototype, the vibration motors were replaced by an LED strip for visual feedback. This change allowed for a simpler and quicker implementation while still demonstrating the core functionality of the system.
+\item Limited documentation for the PyRealSense2 library made it difficult to install and utilize the camera effectively across different operating systems.
+\item Debugging multi-threaded applications proved to be, as expected, a complex task. Ensuring that all threads operated correctly and efficiently required careful design, testing, and the implementation of comprehensive logging and monitoring systems.
+\item Synchronizing audio and video data streams accurately to ensure that the output feedback corresponded correctly to the sensory input, particularly given the different capture rates and processing times of each modality.
+\item Saturating the Arduino communication buffer when sending commands too rapidly, which led to unresponsive output devices. To address this issue, a monitoring script (\texttt{monitor\_serial.py}) was implemented to visualize the commands being sent to the Arduino in real-time, allowing for better debugging and optimization of the communication process.
+\end{enumerate}
+
+\subsection{Ideas for Future Work}
+
+As this project was developed within a limited timeframe, there are several areas of improvement and expansion that could be explored in future work. Some potential directions for future development include:
+
+\begin{enumerate}
+\item Enhancing user interaction by implementing a user interface that allows for real-time adjustment of system parameters, such as the weighted averaging coefficients between audio and video inputs, sensitivity thresholds, and output modes.
+\item Integrating the originally intended vibration motors to provide haptic feedback and evaluating their effectiveness compared to the visual feedback provided by the LED strip. This modification would not require significant changes to the existing codebase, as the communication protocol with the Arduino would remain the same.
+\item Optimizing the audio processing module to increase the data processing rate beyond the current 6 items per second, allowing for more frequent updates and smoother feedback. This could involve implementing more efficient FFT algorithms or utilizing hardware acceleration.
+\item Conducting real-world testing with visually impaired users to evaluate the system's performance in various environments and scenarios, providing valuable insights into its practical usability, effectiveness, and user acceptance. Such studies would also help identify necessary adjustments to the sensitivity settings and feedback mechanisms.
+\item Implementing adaptive sensitivity that automatically adjusts based on environmental conditions and user preferences learned over time.
+\end{enumerate}
+
+%%
+%% Conclusion
+
+\section{Conclusion}
+
+This project successfully developed a multimodal assistive system that integrates audio and video sensors and provides real-time feedback to the user through a set of output devices. The system architecture, based on a producer-consumer model with multi-threading and sophisticated queue management, effectively handles the complexities of data acquisition, time-sensitive processing, temporal synchronization, and communication. The implementation includes comprehensive modules for audio and video processing, intensity calculation using weighted averaging, and command generation following a well-defined protocol.
+
+As with all prototype projects, there are several areas for improvement that could be explored in future work, including enhancing user interaction through adaptive interfaces, optimizing processing modules for higher throughput, integrating the intended haptic feedback hardware, and conducting real-world evaluations with target users. Overall, this project demonstrates the feasibility and potential of multimodal systems for enhancing mobility and safety for visually impaired individuals through intelligent sensory feedback.
+
+%%
+%% Open Science
+
+\section*{Open Science}
+
+The complete code for this project is available on GitHub at the following repository: \url{https://github.com/fstormacq/Master1-IIA-project}
+
+%%
+%% Acknowledgements
+
+\begin{acks}
+    This work was supported by the University of Namur, the Namur Digital Institute (NaDI), and the Research Center on Information Systems Engineering (PReCISE). The authors would like to thank all individuals who contributed to this project. A particular thanks to the providers of the hardware components that made this research possible.
+\end{acks}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{../template/bibliography}
+
+% ===================================================================
+% TODO: TO BE COMPLETED - Document ends here
+% ===================================================================
+
+\end{document}
+\endinput

@@ -1,6 +1,9 @@
 import serial
 import sys
 
+# Monitor serial output from Arduino
+# Author: Claude Sonnet 4.5, reviewed by Florian Stormacq
+
 try:
     ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
     print("📡 Monitoring Arduino on /dev/ttyACM0 at 115200 baud...")
