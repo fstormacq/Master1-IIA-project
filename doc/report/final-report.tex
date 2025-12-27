@@ -142,6 +142,15 @@ The project is structured into several key components to ensure optimal function
 
 \textcolor{red}{\textbf{[TODO: Audio and Video Sensor sections to be completed by team members]}}
 
+\subsubsection{Video Sensor (Intel RealSense Camera)}
+To capture the image and depth information, we use an Intel RealSense Depth D435i camera connected to the Raspberry Pi via a USB-C cable. The aim is to continuously record the depth stream perceived by the camera in order to locate potential dangers, estimate their distance, and determine the alert mode of the smart cane as well as the direction to avoid obstacles. 
+
+The camera is configured with a resolution of 640×480 pixels and a frame rate of 15 frames per second. Only the depth stream is used in our application.
+
+Each depth image is then divided into three vertical zones (left, center, and right). For each zone, the median distance is calculated to reduce the influence of noise and obtain a more stable estimate of the distance to obstacles.
+
+Two distance thresholds are defined to assess the level of danger: an attention zone when the obstacle is located less than 2 meters away, and an alert zone when it is less than 1 meter away. Any obstacle located beyond 2 meters is considered non-hazardous.
+
 \subsubsection{Processing Unit}
 
 The processing unit used is a Raspberry Pi 3, which handles data acquisition, processing, and communication with the Arduino board. The Raspberry Pi runs multiple threads to manage audio and video data streams, synchronization, and command generation for the output layer.
@@ -271,6 +280,10 @@ All these modules work together seamlessly to ensure that the system operates in
 % ============================================================================
 
 \textcolor{red}{\textbf{[TODO: Contribution section to be completed by team members]}}
+
+This project was developed by our student group; each team member was responsible for specific components of the system to ensure a clear separation of tasks and efficient development.
+
+Edwyn Eben was responsible for the video detection module with the RealSense Depth i435 camera, obtaining depth data, obstacle detection and distance-based risk assessment.
 
 \textit{Preliminary notes: The project introduces a multimodal approach combining depth and ambient audio information. Directional haptic feedback conveys both presence and position of obstacles.}
 
