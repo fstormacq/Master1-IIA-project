@@ -129,18 +129,8 @@ The project is structured into several key components to ensure optimal function
 
 \subsection{Project Architecture}
 
-\subsubsection{Sensors}
-
-% ============================================================================
-% TODO: TO BE COMPLETED BY TEAM MEMBERS
-% ============================================================================
-% Please describe:
-% - Audio Sensor (Microphone): USB device specifications, setup, and purpose
-% - Video Sensor (Intel RealSense Camera): Camera model, connection, capabilities
-% - Technical specifications and configuration details
-% ============================================================================
-
-\textcolor{red}{\textbf{[TODO: Audio and Video Sensor sections to be completed by team members]}}
+\subsubsection{Audio Sensor (Microphone)}
+ To capture ambient sound, we use a USB microphone (\textit{``USB PnP Sound Device''}). The goal is to continuously record the surrounding audio signal in order to determine the noise level around the user. This allows us to know whether the environment is noisy (e.g., a crowd) or quiet.
 
 \subsubsection{Video Sensor (Intel RealSense Camera)}
 To capture the image and depth information, we use an Intel RealSense Depth D435i camera connected to the Raspberry Pi via a USB-C cable. The aim is to continuously record the depth stream perceived by the camera in order to locate potential dangers, estimate their distance, and determine the alert mode of the smart cane as well as the direction to avoid obstacles. 
@@ -191,22 +181,18 @@ Each queue is configured with a maximum size to prevent memory overflow. The mod
 % TODO: TO BE COMPLETED BY TEAM MEMBERS
 % ============================================================================
 % Please describe:
-% - Audio Sensor implementation details (sounddevice library, buffer management)
+
 % - Video Sensor implementation (pyrealsense2, depth processing, obstacle detection)
 % - Data capture workflow and real-time processing loop
 % ============================================================================
 
 \textcolor{red}{\textbf{[TODO: Audio and Video Sensor implementation sections to be completed by team members]}}
 
-The camera.py code uses the RealSense depth i435 camera to detect obstacles in front of the cane and estimate the distances to them in real time.
+\subsubsection{Audio Sensor (Microphone)}
 
-It uses the pyrealsense2 library to communicate with the camera. The camera is configured with a resolution of 640×480 pixels at 15 FPS to capture depth images. At startup, a detection phase checks if the camera is available. If it is not detected, the system switches to simulation mode, generating artificial distances to test the code.
+A Python script in the \texttt{micro} folder is used to capture the data recorded by the microphone. Audio capture relies on the \texttt{sounddevice} library, which creates an audio stream that captures samples in real time. The signal is retrieved as chunks, then sent into a queue to be processed. 
 
-The process_frame() function divides each image into three vertical zones corresponding to the left, center, and right directions. For each zone, the distance is estimated from the depth data measured by the camera. After converting this perceived data to meters, a median is applied to all the values ​​to obtain a representative value for each image using the median_calculator() function. This approach helps limit measurement errors and sensor noise. To make the measurements even more stable, the system takes into account distances calculated over several successive images for each zone, instead of relying on a single image; this is called smoothing.
-
-The distances from this history are stored, and then a second median is calculated to obtain a more stable final distance. Based on the smoothed central distance, the Danger_zone() function determines which danger zone the user is in (peaceful, caution, or alert). Beyond 2 meters, the user is in peaceful mode, indicating that there are no obstacles that could pose a real danger. Between 2 and 1 meter, the user enters a caution zone, where they know there is an obstacle in front of them and that they must avoid it. Within 1 meter, the user knows they must move if they don't want to collide with the obstacle.
-
-Finally, the start_video_capture() function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to help calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the queue_manager.
+To achieve this, the script first searches for the desired audio device. Then, it defines various parameters (chunk size, chunk duration, etc). After that, audio capture is performed through an audio stream (\texttt{InputStream}) associated with a callback function. Each time new data is received, the samples are added to an internal buffer. As soon as this buffer contains enough samples to form a complete chunk, the chunk is extracted and converted into a NumPy array before being sent into a queue for processing. Additionally, the module provides a simulation mode to facilitate testing and debugging of the system without requiring physical audio hardware.
 
 \subsubsection{Raspberry Pi Module}
 
@@ -222,33 +208,42 @@ The script runs separate processing threads for audio and video data (\texttt{mi
 
 \paragraph{Synchronization Buffer:} 
 
-% ============================================================================
-% TODO: TO BE COMPLETED - Synchronization Buffer Details
-% ============================================================================
-% The sync_buffer.py module needs to be explained here. Please describe:
-% - Temporal synchronization mechanism between audio and video streams
-% - Buffer implementation (deques, timestamps, SensorData objects)
-% - Synchronization algorithm and threshold (50ms)
-% - Cleanup mechanism (150ms timeout)
-% ============================================================================
+In order to correctly merge the information from the audio and video sensors, a time synchronisation mechanism has been implemented using the \texttt{sync\_buffer.py} module. This module is responsible for associating the processed audio and video data that correspond to the same point in time, despite different capture frequencies and processing times.
 
-\textcolor{red}{\textbf{[TODO: Add detailed explanation of sync\_buffer.py module and synchronization algorithm]}}
+The system is based on two separate buffers, implemented as limited-size \texttt{deque} structures, one for audio data and the other for video data. Each buffer can hold up to five items. The stored data is encapsulated in \texttt{SensorData} objects, which contain three essential pieces of information: a precise timestamp, the processed sensor data, and the origin of the data (audio or video).
+
+When a new audio or video result is produced by the respective processing modules, it is added to the corresponding buffer with a timestamp obtained using the \texttt{time.time()} function.
+
+In order to avoid the accumulation of obsolete data and maintain low latency, an automatic cleaning mechanism is applied. Any data older than a maximum threshold of 150 milliseconds is deleted from the buffer.
+
+The synchronisation itself is performed by the \texttt{get\_synchronized\_pair()} method. This method compares all possible combinations between the elements present in the audio and video buffers in order to determine the pair with the smallest time difference. If this difference is less than a synchronisation threshold set at 50 milliseconds, the pair is considered valid. The elements used are then removed from the buffers to prevent any subsequent reuse. The value of 50 milliseconds was chosen arbitrarily based on what worked best for our tests. 
+
+If no sufficiently synchronised pair is found, the method returns a null value, indicating that no reliable multimodal fusion can be performed at that time. The module also provides methods for retrieving the most recent audio or video data, which are used as a fallback mechanism when one of the two modalities is temporarily unavailable.
 
 \paragraph{Intensity Calculator:} 
 
-To adjust the output intensities based on the processed sensor data, the \texttt{intensity\_calculator.py} script is used. This module implements the \texttt{IntensityCalculator} class with two static methods for converting sensor data into intensity values ranging from 0 to 100.
+To adjust the output intensities based on the processed sensor data, the \texttt{intensity\_calculator.py} script is used. This module implements the \texttt{IntensityCalculator} class with two static methods for converting sensor data into intensity values ranging from 0 to 100. These values represent the perceived level of risk and are used to modulate the intensity of the feedback provided to the user. The class is based on two distinct static methods, corresponding to the two sensory modalities of the system: audio and vision.
 
-% ============================================================================
-% TODO: TO BE COMPLETED - Intensity Calculation Details
-% ============================================================================
-% Please expand on the conversion process from sensor data to intensity values:
-% - audio_to_intensity(): dB to intensity mapping (piecewise linear)
-% - vision_to_intensity_by_zone(): distance to intensity per zone (left/center/right)
-% - Specific thresholds and intensity ranges
-% - Obstacle boost mechanism (+20 points)
-% ============================================================================
+\textbf{Audio conversion:}
+The \texttt{audio\_to\_intensity()} method converts the ambient sound level, expressed in decibels (dB), into an intensity between 0 and 100. This conversion is performed using a piecewise linear function, defined over several sound level intervals in order to gradually reflect the increase in risk associated with ambient noise. Four sound level ranges are defined:
 
-\textcolor{red}{\textbf{[TODO: Add detailed explanation of intensity calculation algorithms and thresholds]}}
+\begin{itemize}
+    \item For levels below $-45$ dB, corresponding to a very quiet environment, the intensity varies linearly from 0 to 20.
+    \item Between $-45$ dB and $-30$ dB, the environment is considered moderately noisy, and the intensity increases gradually from 20 to 50.
+    \item Between $-30$ dB and $-15$ dB, the noise becomes significant and the intensity is between 50 and 80.
+    \item Above $-15$ dB, the sound level is considered potentially dangerous and the intensity is saturated between 80 and 100 in order to avoid excessive values.
+\end{itemize}
+
+\textbf{Visual conversion by zone:}
+The \texttt{vision\_to\_intensity\_by\_zone()} method converts the distances estimated by the depth camera into distinct intensities for the three spatial zones considered: left, centre and right. For each zone, a default distance of 5 metres is used in the absence of a valid measurement. The base intensity is calculated based on the minimum distance detected in the zone:
+
+\begin{itemize}
+    \item For distances greater than 2 metres, the intensity remains low (0 to 15), indicating a non-hazardous situation.
+    \item For distances between 1 and 2 metres, the intensity increases linearly from 15 to 70, indicating an area requiring vigilance.
+    \item For distances less than 1 metre, the intensity is high (70 to 100), signalling immediate danger.
+\end{itemize}
+
+In addition to this distance-based estimate, a reinforcement mechanism is applied when an obstacle is explicitly detected in a given area. In this case, a fixed bonus of 20 points is added to the calculated intensity. This increase allows obstacles clearly identified by the vision algorithm to be prioritised, even if their distance remains slightly above the critical thresholds. Finally, all intensities are limited between 0 and 100 to ensure system stability and compatibility with the output device control protocol.
 
 \paragraph{Message Generator:} 
 
@@ -294,6 +289,8 @@ All these modules work together seamlessly to ensure that the system operates in
 This project was developed by our student group; each team member was responsible for specific components of the system to ensure a clear separation of tasks and efficient development.
 
 Edwyn Eben was responsible for the video detection module with the RealSense Depth i435 camera, obtaining depth data, obstacle detection and distance-based risk assessment.
+
+Louca Mathieu was responsible for capturing audio data (micro.py) and synchronising audio and visual data. 
 
 \textit{Preliminary notes: The project introduces a multimodal approach combining depth and ambient audio information. Directional haptic feedback conveys both presence and position of obstacles.}
 
