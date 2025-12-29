@@ -198,6 +198,16 @@ Each queue is configured with a maximum size to prevent memory overflow. The mod
 
 \textcolor{red}{\textbf{[TODO: Audio and Video Sensor implementation sections to be completed by team members]}}
 
+The camera.py code uses the RealSense depth i435 camera to detect obstacles in front of the cane and estimate the distances to them in real time.
+
+It uses the pyrealsense2 library to communicate with the camera. The camera is configured with a resolution of 640×480 pixels at 15 FPS to capture depth images. At startup, a detection phase checks if the camera is available. If it is not detected, the system switches to simulation mode, generating artificial distances to test the code.
+
+The process_frame() function divides each image into three vertical zones corresponding to the left, center, and right directions. For each zone, the distance is estimated from the depth data measured by the camera. After converting this perceived data to meters, a median is applied to all the values ​​to obtain a representative value for each image using the median_calculator() function. This approach helps limit measurement errors and sensor noise. To make the measurements even more stable, the system takes into account distances calculated over several successive images for each zone, instead of relying on a single image; this is called smoothing.
+
+The distances from this history are stored, and then a second median is calculated to obtain a more stable final distance. Based on the smoothed central distance, the Danger_zone() function determines which danger zone the user is in (peaceful, caution, or alert). Beyond 2 meters, the user is in peaceful mode, indicating that there are no obstacles that could pose a real danger. Between 2 and 1 meter, the user enters a caution zone, where they know there is an obstacle in front of them and that they must avoid it. Within 1 meter, the user knows they must move if they don't want to collide with the obstacle.
+
+Finally, the start_video_capture() function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to help calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the queue_manager.
+
 \subsubsection{Raspberry Pi Module}
 
 As the Raspberry Pi is the core processing unit of the system, it hosts several modules that handle different aspects of data processing and communication.
