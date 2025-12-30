@@ -137,11 +137,11 @@ People with visual impairments represent a significant proportion of the global 
 
 \section{Introduction}
 
-The goal of the project is to develop an adaptive smart cane designed to improve spatial awareness and safety for visually impaired people. The system relies on two main sensors: a depth camera and a microphone to detect obstacles or danger in real-time. The data is collected by a Raspberry Pi which analyzes visual and audio information from the environment.
+The goal of the project is to develop an adaptive smart cane designed to improve spatial awareness and safety for visually impaired people. The system relies on two main sensors: a depth camera and a microphone to detect obstacles or danger in real time. The data is collected by a Raspberry Pi which analyzes visual and audio information from the environment.
 
-The system focuses entirely on haptic feedback. A set of 3 vibration motors is placed on the cane to provide tactile information to the user. Each motor has a direction which means one direction is missing. Indeed, we have left out the back direction because the camera will be settled as glasses so they cannot see behind the user. The vibration intensity and duration reflect the proximity of the danger, allowing the user to interpret the environment with the haptic output.
+The system focuses entirely on haptic feedback. A set of 3 vibration motors is placed on the cane to provide tactile information to the user. Each motor corresponds to a direction, which means one direction is missing. Indeed, we have left out the back direction because the camera will be positioned as glasses, so it cannot see behind the user. The vibration intensity and duration reflect the proximity of the danger, allowing the user to interpret the environment through the haptic output.
 
-This cane aims to support blind people during urban navigation or any activity that has potential danger to the user.
+This cane aims to support blind people during urban navigation or any activity that presents potential danger to the user.
 
 %%
 %% Related work
@@ -166,9 +166,11 @@ The project is structured into several key components to ensure optimal function
 \subsection{Project Architecture}
 
 \subsubsection{Audio Sensor (Microphone)}
- To capture ambient sound, we use a USB microphone (\textit{``USB PnP Sound Device''}). The goal is to continuously record the surrounding audio signal in order to determine the noise level around the user. This allows us to know whether the environment is noisy (e.g., a crowd) or quiet.
+
+To capture ambient sound, we use a USB microphone (\textit{``USB PnP Sound Device''}). The goal is to continuously record the surrounding audio signal in order to determine the noise level around the user. This allows us to know whether the environment is noisy (\eg a crowd) or quiet.
 
 \subsubsection{Video Sensor (Intel RealSense Camera)}
+
 To capture the image and depth information, we use an Intel RealSense Depth D435i camera connected to the Raspberry Pi via a USB-C cable. The aim is to continuously record the depth stream perceived by the camera in order to locate potential dangers, estimate their distance, and determine the alert mode of the smart cane as well as the direction to avoid obstacles. 
 
 The camera is configured with a resolution of 640×480 pixels and a frame rate of 15 frames per second. Only the depth stream is used in our application.
@@ -191,7 +193,7 @@ In this project, Arduino is used as an interface between the central processing 
 
 First, the Raspberry Pi sends data divided into three components: where the danger comes from, the intensity, and the duration of the vibration. The Arduino receives the information, interprets it, and converts it into appropriate signals for the vibration motors.
 
-In the overall architecture, the Arduino is responsible for executing the physical output (vibration motors) in real-time. It does not process data; it applies the received instructions for the vibration motors.
+In the overall architecture, the Arduino is responsible for executing the physical output (vibration motors) in real time. It does not process data; it applies the received instructions to the vibration motors.
 
 \subsection{Project Implementation}
 
@@ -201,19 +203,19 @@ First, to ensure an easy setup of the project, UV was used to manage the Python 
 
 The codebase is organized into several modules, each responsible for a specific functionality of the system. The entry point of the project is the \code{main.py} script, which orchestrates the different threads. This script initializes and starts all the necessary threads for data acquisition, processing, communication, and monitoring of the sent data. The main script supports several command-line arguments: \code{--no-audio} to disable audio capture, \code{--no-video} to disable video capture, \code{--debug} to enable verbose logging, and \code{--simulate} to simulate inputs for testing purposes. Each producer (audio and video) runs as a daemon thread to ensure proper shutdown when the main process terminates.
 
-In addition to this main script, a secondary Python script (\code{monitor_serial.py}) is provided to monitor the serial communication between the Raspberry Pi and the Arduino board. This lightweight monitoring script connects to the Arduino via \code{/dev/ttyACM0} at 115200 baud and displays all incoming messages in real-time. To facilitate the startup of the entire system along with the monitoring script, a shell script (\code{start.sh}) is provided that launches both the main system and the monitor simultaneously. The script captures the process ID of the main system and ensures proper cleanup when the monitor is stopped with Ctrl+C.
+In addition to this main script, a secondary Python script (\code{monitor_serial.py}) is provided to monitor the serial communication between the Raspberry Pi and the Arduino board. This lightweight monitoring script connects to the Arduino via \code{/dev/ttyACM0} at 115200 baud and displays all incoming messages in real time. To facilitate the startup of the entire system along with the monitoring script, a shell script (\code{start.sh}) is provided that launches both the main system and the monitor simultaneously. The script captures the process ID of the main system and ensures proper cleanup when the monitor is stopped with Ctrl+C.
 
 \subsubsection{Queue Manager}
 
 To simplify the management of the queues used for inter-thread communication, a dedicated module was implemented: \code{queue_manager.py}. This module creates a singleton class, \code{QueueManager}, which encapsulates the functionality of all queues used in the project. The \code{QueueManager} class initializes five separate queues: \code{micro_queue} and \code{video_queue} (maxsize=10) for raw sensor data, \code{audio_processed_queue} and \code{video_processed_queue} (maxsize=5) for processed features, and \code{arduino_queue} (maxsize=5) for commands to be sent to the Arduino.
 
-Each queue is configured with a maximum size to prevent memory overflow. The module provides dedicated methods for adding and retrieving data from each queue (\code{put_micro_data ()}, \code{get_micro_data ()}, \code{put_video_data ()}, etc.). When adding data, the current timestamp is automatically attached as a tuple \code{(data, timestamp)} to facilitate temporal synchronization. The queue manager implements comprehensive monitoring, tracking both the total number of items processed and the number of dropped items for each queue. When a queue becomes full, the system drops the three oldest items before adding the new data, preventing blocking while maintaining real-time responsiveness. The \code{get_queue_stats ()} method provides detailed statistics about queue usage, enabling performance monitoring and system diagnostics. Encapsulating the queue management logic within a dedicated module simplifies the code, making it easier to understand and maintain.
+Each queue is configured with a maximum size to prevent memory overflow. The module provides dedicated methods for adding and retrieving data from each queue (\code{put_micro_data()}, \code{get_micro_data()}, \code{put_video_data()}, etc.). When adding data, the current timestamp is automatically attached as a tuple \code{(data, timestamp)} to facilitate temporal synchronization. The queue manager implements comprehensive monitoring, tracking both the total number of items processed and the number of dropped items for each queue. When a queue becomes full, the system drops the three oldest items before adding the new data, preventing blocking while maintaining real-time responsiveness. The \code{get_queue_stats()} method provides detailed statistics about queue usage, enabling performance monitoring and system diagnostics. Encapsulating the queue management logic within a dedicated module simplifies the code, making it easier to understand and maintain.
 
 \subsubsection{Sensors Implementation}
 
-\subsubsection{Video Sensor (Realsense D435i)}
+\subsubsection{Video Sensor (RealSense D435i)}
 
-The \code{camera.py} code uses the RealSense depth i435 camera to detect obstacles in front of the cane and estimate the distances to them in real time.
+The \code{camera.py} code uses the RealSense Depth D435i camera to detect obstacles in front of the cane and estimate the distances to them in real time.
 
 It uses the pyrealsense2 library to communicate with the camera. The camera is configured with a resolution of 640×480 pixels at 15 FPS to capture depth images. At startup, a detection phase checks if the camera is available. If it is not detected, the system switches to simulation mode, generating artificial distances to test the code.
 
@@ -221,13 +223,13 @@ The \code{process_frame()} function divides each image into three vertical zones
 
 The distances from this history are stored, and then a second median is calculated to obtain a more stable final distance. Based on the smoothed central distance, the \code{danger_zone()} function determines which danger zone the user is in (peaceful, caution, or alert). Beyond 2 meters, the user is in peaceful mode, indicating that there are no obstacles that could pose a real danger. Between 2 and 1 meter, the user enters a caution zone, where they know there is an obstacle in front of them and that they must avoid it. Within 1 meter, the user knows they must move if they don't want to collide with the obstacle.
 
-Finally, the \code{start_video_capture()} function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to help calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the \code{queue_manager}.
+Finally, the \code{start_video_capture()} function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the \code{queue_manager}.
 
 \subsubsection{Audio Sensor (Microphone)}
 
 A Python script in the \code{micro} folder is used to capture the data recorded by the microphone. Audio capture relies on the \code{sounddevice} library, which creates an audio stream that captures samples in real time. The signal is retrieved as chunks, then sent into a queue to be processed. 
 
-To achieve this, the script first searches for the desired audio device. Then, it defines various parameters (chunk size, chunk duration, etc). After that, audio capture is performed through an audio stream (\code{InputStream}) associated with a callback function. Each time new data is received, the samples are added to an internal buffer. As soon as this buffer contains enough samples to form a complete chunk, the chunk is extracted and converted into a NumPy array before being sent into a queue for processing. Additionally, the module provides a simulation mode to facilitate testing and debugging of the system without requiring physical audio hardware.
+To achieve this, the script first searches for the desired audio device. Then, it defines various parameters (chunk size, chunk duration, etc.). After that, audio capture is performed through an audio stream (\code{InputStream}) associated with a callback function. Each time new data is received, the samples are added to an internal buffer. As soon as this buffer contains enough samples to form a complete chunk, the chunk is extracted and converted into a NumPy array before being sent into a queue for processing. Additionally, the module provides a simulation mode to facilitate testing and debugging of the system without requiring physical audio hardware.
 
 \subsubsection{Raspberry Pi Module}
 
@@ -235,15 +237,15 @@ As the Raspberry Pi is the core processing unit of the system, it hosts several 
 
 The \code{raspberry.py} module is the main module that integrates all functionalities, managing data flow between the audio and video modules, synchronization buffer, and Arduino communication.
 
-As discussed earlier, the project architecture is based on a producer-consumer model, with multiple threads handling different data streams. Each sensor modality has its own dedicated thread for data acquisition and pre-processing, which then feeds the shared queues.
+As discussed earlier, the project architecture is based on a producer-consumer model, with multiple threads handling different data streams. Each sensor modality has its own dedicated thread for data acquisition and preprocessing, which then feeds the shared queues.
 
-The \code{raspberry.py} script is responsible for all the heavy processing tasks. For audio data, the \code{heavy_audio_processing()} function computes the Root Mean Square (RMS) of the signal, converts it to dB level using the formula $20 \times \log_{10}(\text{rms} / \text{reference})$, and classifies the sound into four categories: "Chillax" (< -45 dB), "Some noise" (-45 to -30 dB), "Be Careful" (-30 to -15 dB), or "Danger" (> -15 dB). Additionally, it performs Fast Fourier Transform (FFT) analysis to detect the dominant frequency in the audio signal. For video data, the \code{heavy_video_processing()} function analyzes obstacle positions and distances, computing a danger level (0-3) based on the number and position of detected obstacles, with special priority given to center obstacles. The function also assigns risk classifications ("safe", "medium", "high", or "critical") corresponding to each danger level.
+The \code{raspberry.py} script is responsible for all the heavy processing tasks. For audio data, the \code{heavy_audio_processing()} function computes the Root Mean Square (RMS) of the signal, converts it to dB level using the formula $20 \times \log_{10}(\text{rms} / \text{reference})$, and classifies the sound into four categories: ``Chillax'' ($< -45$ dB), ``Some noise'' ($-45$ to $-30$ dB), ``Be Careful'' ($-30$ to $-15$ dB), or ``Danger'' ($> -15$ dB). Additionally, it performs Fast Fourier Transform (FFT) analysis to detect the dominant frequency in the audio signal. For video data, the \code{heavy_video_processing()} function analyzes obstacle positions and distances, computing a danger level (0--3) based on the number and position of detected obstacles, with special priority given to center obstacles. The function also assigns risk classifications (``safe'', ``medium'', ``high'', or ``critical'') corresponding to each danger level.
 
 The script runs separate processing threads for audio and video data (\code{micro_processing_thread()} and \code{video_processing_thread()}), each continuously consuming data from their respective queues. These processed results are then added to intermediate queues before being synchronized using the \code{sync_buffer.py} module. Finally, commands are generated for the Arduino board based on the synchronized information, and these commands are sent via serial communication at 115200 baud.
 
-\paragraph{Synchronization Buffer:} 
+\paragraph{Synchronization Buffer} 
 
-In order to correctly merge the information from the audio and video sensors, a time synchronisation mechanism has been implemented using the \code{sync_buffer.py} module. This module is responsible for associating the processed audio and video data that correspond to the same point in time, despite different capture frequencies and processing times.
+In order to correctly merge the information from the audio and video sensors, a time synchronization mechanism has been implemented using the \code{sync_buffer.py} module. This module is responsible for associating the processed audio and video data that correspond to the same point in time, despite different capture frequencies and processing times.
 
 The system is based on two separate buffers, implemented as limited-size \code{deque} structures, one for audio data and the other for video data. Each buffer can hold up to five items. The stored data is encapsulated in \code{SensorData} objects, which contain three essential pieces of information: a precise timestamp, the processed sensor data, and the origin of the data (audio or video).
 
@@ -251,11 +253,11 @@ When a new audio or video result is produced by the respective processing module
 
 In order to avoid the accumulation of obsolete data and maintain low latency, an automatic cleaning mechanism is applied. Any data older than a maximum threshold of 150 milliseconds is deleted from the buffer.
 
-The synchronisation itself is performed by the \code{get_synchronized_pair()} method. This method compares all possible combinations between the elements present in the audio and video buffers in order to determine the pair with the smallest time difference. If this difference is less than a synchronisation threshold set at 50 milliseconds, the pair is considered valid. The elements used are then removed from the buffers to prevent any subsequent reuse. The value of 50 milliseconds was chosen arbitrarily based on what worked best for our tests. 
+The synchronization itself is performed by the \code{get_synchronized_pair()} method. This method compares all possible combinations between the elements present in the audio and video buffers in order to determine the pair with the smallest time difference. If this difference is less than a synchronization threshold set at 50 milliseconds, the pair is considered valid. The elements used are then removed from the buffers to prevent any subsequent reuse. The value of 50 milliseconds was chosen arbitrarily based on what worked best for our tests. 
 
-If no sufficiently synchronised pair is found, the method returns a null value, indicating that no reliable multimodal fusion can be performed at that time. The module also provides methods for retrieving the most recent audio or video data, which are used as a fallback mechanism when one of the two modalities is temporarily unavailable.
+If no sufficiently synchronized pair is found, the method returns a null value, indicating that no reliable multimodal fusion can be performed at that time. The module also provides methods for retrieving the most recent audio or video data, which are used as a fallback mechanism when one of the two modalities is temporarily unavailable.
 
-\paragraph{Intensity Calculator:} 
+\paragraph{Intensity Calculator} 
 
 To adjust the output intensities based on the processed sensor data, the \code{intensity_calculator.py} script is used. This module implements the \code{IntensityCalculator} class with two static methods for converting sensor data into intensity values ranging from 0 to 100. These values represent the perceived level of risk and are used to modulate the intensity of the feedback provided to the user. The class is based on two distinct static methods, corresponding to the two sensory modalities of the system: audio and vision.
 
@@ -270,27 +272,27 @@ The \code{audio_to_intensity()} method converts the ambient sound level, express
 \end{itemize}
 
 \textbf{Visual conversion by zone:}
-The \code{vision_to_intensity_by_zone()} method converts the distances estimated by the depth camera into distinct intensities for the three spatial zones considered: left, centre and right. For each zone, a default distance of 5 metres is used in the absence of a valid measurement. The base intensity is calculated based on the minimum distance detected in the zone:
+The \code{vision_to_intensity_by_zone()} method converts the distances estimated by the depth camera into distinct intensities for the three spatial zones considered: left, center, and right. For each zone, a default distance of 5 meters is used in the absence of a valid measurement. The base intensity is calculated based on the minimum distance detected in the zone:
 
 \begin{itemize}
-    \item For distances greater than 2 metres, the intensity remains low (0 to 15), indicating a non-hazardous situation.
-    \item For distances between 1 and 2 metres, the intensity increases linearly from 15 to 70, indicating an area requiring vigilance.
-    \item For distances less than 1 metre, the intensity is high (70 to 100), signalling immediate danger.
+    \item For distances greater than 2 meters, the intensity remains low (0 to 15), indicating a non-hazardous situation.
+    \item For distances between 1 and 2 meters, the intensity increases linearly from 15 to 70, indicating an area requiring vigilance.
+    \item For distances less than 1 meter, the intensity is high (70 to 100), signaling immediate danger.
 \end{itemize}
 
-In addition to this distance-based estimate, a reinforcement mechanism is applied when an obstacle is explicitly detected in a given area. In this case, a fixed bonus of 20 points is added to the calculated intensity. This increase allows obstacles clearly identified by the vision algorithm to be prioritised, even if their distance remains slightly above the critical thresholds. Finally, all intensities are limited between 0 and 100 to ensure system stability and compatibility with the output device control protocol.
+In addition to this distance-based estimate, a reinforcement mechanism is applied when an obstacle is explicitly detected in a given area. In this case, a fixed bonus of 20 points is added to the calculated intensity. This increase allows obstacles clearly identified by the vision algorithm to be prioritized, even if their distance remains slightly above the critical thresholds. Finally, all intensities are limited between 0 and 100 to ensure system stability and compatibility with the output device control protocol.
 
-\paragraph{Message Generator:} 
+\paragraph{Message Generator} 
 
 A final relevant module is the \code{lcr_message_generator.py}, which is responsible for formatting the computed intensity levels into the specific command protocol required by the Arduino board. This module implements the \code{LCRMessageGenerator} class that maintains state including the last sent message and a message counter for tracking.
 
-The command format used is \code{LxxxCxxxRxxx}, where \code{L}, \code{C}, and \code{R} represent the left, center, and right output intensities, respectively, each followed by a three-digit zero-padded intensity value (000-100). The module provides two generation methods: \code{generate_synchronized_message()} for cases where both audio and video data are available, and \code{generate_fallback_message()} for single-modality scenarios.
+The command format used is \code{LxxxCxxxRxxx}, where \code{L}, \code{C}, and \code{R} represent the left, center, and right output intensities, respectively, each followed by a three-digit zero-padded intensity value (000--100). The module provides two generation methods: \code{generate_synchronized_message()} for cases where both audio and video data are available, and \code{generate_fallback_message()} for single-modality scenarios.
 
 The synchronization method implements a sophisticated weighted averaging scheme to merge audio and video intensities. For the center zone, the formula is: $(4 \times \text{vision\_intensity} + \text{audio\_intensity}) / 5$, giving 80\% weight to visual data and 20\% to audio. For lateral zones (left and right), audio influence is further reduced to 70\% of its original value: $(4 \times \text{vision\_intensity} + 0.7 \times \text{audio\_intensity}) / 5$. This weighting strategy prioritizes visual obstacle detection while still incorporating ambient sound information, particularly emphasizing visual data for the critical center zone where the user is heading. The weighted average calculation ensures smooth transitions between different environmental conditions.
 
 These weighting values can be modified in the \code{lcr_message_generator.py} module to adjust the system's sensitivity according to user preferences, and this opens the possibility for future improvements, such as implementing a user-tunable sensitivity setting.
 
-All these modules work together seamlessly to ensure that the system operates in real-time, providing appropriate feedback to the user based on the multimodal sensory input. The entire processing pipeline---from sensor data acquisition through queue management, processing, synchronization, intensity calculation, and message generation---is designed to maintain low latency and high responsiveness, crucial for assistive navigation applications.
+All these modules work together seamlessly to ensure that the system operates in real time, providing appropriate feedback to the user based on the multimodal sensory input. The entire processing pipeline---from sensor data acquisition through queue management, processing, synchronization, intensity calculation, and message generation---is designed to maintain low latency and high responsiveness, crucial for assistive navigation applications.
 
 \subsubsection{Arduino Board Implementation}
 
@@ -298,9 +300,9 @@ The Arduino is used as a hardware interface between the Raspberry Pi and the out
 
 The Arduino communicates with the Raspberry Pi via a serial connection configured at 115200 baud. Commands are transmitted using a simple and robust format: \code{LxxxCyyyRzzz}, where each value represents the intensity of the danger expressed between 0 and 100. The letters stand for left, center, and right directions.
 
-Upon reception, each command is directly delivered to the Arduino side. The received values in the range of 0--100 are converted to an 8-bit scale (0--255) required for the proper interpretation of the Arduino. In this part, there is no buffer or queue; each new command immediately replaces the previous output state. This choice ensures that the feedback always reflects the most recent perception of the environment.
+Upon reception, each command is directly delivered to the Arduino side. The received values in the range of 0--100 are converted to an 8-bit scale (0--255) required for proper interpretation by the Arduino. In this part, there is no buffer or queue; each new command immediately replaces the previous output state. This choice ensures that the feedback always reflects the most recent perception of the environment.
 
-Originally, the system was designed to accommodate three vibration motors, one for each spatial direction. Due to hardware and voltage constraints, these motors were first replaced by simple LEDs. However, the brightness of the single color of the LEDs was not fully reliable because the intensity values were difficult to distinguish visually, making it hard to verify whether the Arduino was interpreting well the intensity of the danger. To overcome this limitation, RGB LEDs are used as a visual proxy to the haptic feedback. Each LED corresponds to one direction, and its color and brightness simulate the vibration intensity. The color can smoothly transition from green (safe) through yellow and orange (increasing risk) into red (critical danger), providing a clearer and more intuitive representation of the intensity level.
+Originally, the system was designed to accommodate three vibration motors, one for each spatial direction. Due to hardware and voltage constraints, these motors were first replaced by simple LEDs. However, the brightness of the single color of the LEDs was not fully reliable because the intensity values were difficult to distinguish visually, making it hard to verify whether the Arduino was correctly interpreting the intensity of the danger. To overcome this limitation, RGB LEDs are used as a visual proxy for the haptic feedback. Each LED corresponds to one direction, and its color and brightness simulate the vibration intensity. The color can smoothly transition from green (safe) through yellow and orange (increasing risk) to red (critical danger), providing a clearer and more intuitive representation of the intensity level.
 
 The Arduino code is structured into multiple C++ files:
 \begin{itemize}
@@ -312,7 +314,7 @@ The Arduino code is structured into multiple C++ files:
 
 In addition, three corresponding header files (\code{get.h}, \code{logic.h}, and \code{send.h}) are used so that the functions of these files can be used across the different files of the project.
 
-Several hardware considerations had to be addressed. Indeed, directly powering vibration motors from the Arduino was unsafe due to current limitations and voltage mismatches, which could damage the Arduino board. Using LEDs as a placeholder allowed functional testing of the communication from the Raspberry Pi to the outputs and control logic while avoiding electrical risks and hardware damage. Integrating proper motor drivers remains future work, as well as environment tests.
+Several hardware considerations had to be addressed. Indeed, directly powering vibration motors from the Arduino was unsafe due to current limitations and voltage mismatches, which could damage the Arduino board. Using LEDs as a placeholder allowed functional testing of the communication from the Raspberry Pi to the outputs and control logic while avoiding electrical risks and hardware damage. Integrating proper motor drivers remains future work, as well as environmental tests.
 
 %%
 %% Contribution
@@ -321,13 +323,13 @@ Several hardware considerations had to be addressed. Indeed, directly powering v
 
 This project was developed by our student group; each team member was responsible for specific components of the system to ensure a clear separation of tasks and efficient development.
 
-Edwyn Eben was responsible for the video detection module with the RealSense Depth i435 camera, obtaining depth data, obstacle detection and distance-based risk assessment.
+Edwyn Eben was responsible for the video detection module with the RealSense Depth D435i camera, obtaining depth data, obstacle detection, and distance-based risk assessment.
 
-Louca Mathieu was responsible for capturing audio data (\code{micro.py}) and synchronising audio and visual data. 
+Louca Mathieu was responsible for capturing audio data (\code{micro.py}) and synchronizing audio and visual data. 
 
 Nathan Lambrechts developed the Arduino board code, handling serial communication and output device control. The hardware integration and safety considerations were also managed by him.
 
-Florian Stormacq implemented the Raspberry Pi processing unit, including configuration and dependencies management, multi-threading architecture, the initial queue manager and the main processing pipeline.
+Florian Stormacq implemented the Raspberry Pi processing unit, including configuration and dependencies management, multi-threading architecture, the initial queue manager, and the main processing pipeline.
 
 %%
 %% Evaluation
@@ -343,7 +345,7 @@ The system was not evaluated in real-world conditions due to time constraints an
 
 \subsection{Limitations}
 
-To begin with, the choice of hardware components imposed certain limitations on the system's performance. To ensure real-time processing, the Raspberry Pi 3 was selected as the processing unit. To replicate this project, it is important to use a Raspberry Pi 3 or a more powerful model, as older versions struggle to handle the computational load of processing all sensor data in real-time.
+To begin with, the choice of hardware components imposed certain limitations on the system's performance. To ensure real-time processing, the Raspberry Pi 3 was selected as the processing unit. To replicate this project, it is important to use a Raspberry Pi 3 or a more powerful model, as older versions struggle to handle the computational load of processing all sensor data in real time.
 
 Another limitation of the prototype is the limited processing rate of the audio module. While the video module can process data at a rate of approximately 15 frames per second, the audio module is limited to processing only 6 items per second. This leads to a situation where audio data becomes the bottleneck for the overall system performance, as the synchronization buffer assembles data based on the produced timestamps. Consequently, the system can only provide updates at a maximum rate of 6 items per second, which may not be sufficient for fast-changing environments.
 
@@ -359,7 +361,7 @@ During the development of this project, several challenges were encountered that
 \item Limited documentation for the PyRealSense2 library made it difficult to install and utilize the camera effectively across different operating systems.
 \item Debugging multi-threaded applications proved to be, as expected, a complex task. Ensuring that all threads operated correctly and efficiently required careful design, testing, and the implementation of comprehensive logging and monitoring systems.
 \item Synchronizing audio and video data streams accurately to ensure that the output feedback corresponded correctly to the sensory input, particularly given the different capture rates and processing times of each modality.
-\item Saturating the Arduino communication buffer when sending commands too rapidly, which led to unresponsive output devices. To address this issue, a monitoring script (\code{monitor_serial.py}) was implemented to visualize the commands being sent to the Arduino in real-time, allowing for better debugging and optimization of the communication process.
+\item Saturating the Arduino communication buffer when sending commands too rapidly, which led to unresponsive output devices. To address this issue, a monitoring script (\code{monitor_serial.py}) was implemented to visualize the commands being sent to the Arduino in real time, allowing for better debugging and optimization of the communication process.
 \end{enumerate}
 
 \subsection{Ideas for Future Work}
