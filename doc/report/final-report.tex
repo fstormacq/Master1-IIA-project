@@ -177,27 +177,17 @@ Each queue is configured with a maximum size to prevent memory overflow. The mod
 
 \subsubsection{Sensors Implementation}
 
-% ============================================================================
-% TODO: TO BE COMPLETED BY TEAM MEMBERS
-% ============================================================================
-% Please describe:
-
-% - Video Sensor implementation (pyrealsense2, depth processing, obstacle detection)
-% - Data capture workflow and real-time processing loop
-% ============================================================================
-
-\textcolor{red}{\textbf{[TODO: Audio and Video Sensor implementation sections to be completed by team members]}}
 \subsubsection{Video Sensor (Realsense D435i)}
 
 The camera.py code uses the RealSense depth i435 camera to detect obstacles in front of the cane and estimate the distances to them in real time.
 
 It uses the pyrealsense2 library to communicate with the camera. The camera is configured with a resolution of 640×480 pixels at 15 FPS to capture depth images. At startup, a detection phase checks if the camera is available. If it is not detected, the system switches to simulation mode, generating artificial distances to test the code.
 
-The process_frame() function divides each image into three vertical zones corresponding to the left, center, and right directions. For each zone, the distance is estimated from the depth data measured by the camera. After converting this perceived data to meters, a median is applied to all the values ​​to obtain a representative value for each image using the median_calculator() function. This approach helps limit measurement errors and sensor noise. To make the measurements even more stable, the system takes into account distances calculated over several successive images for each zone, instead of relying on a single image; this is called smoothing.
+The \texttt{process\_frame()} function divides each image into three vertical zones corresponding to the left, center, and right directions. For each zone, the distance is estimated from the depth data measured by the camera. After converting this perceived data to meters, a median is applied to all the values to obtain a representative value for each image using the median\_calculator() function. This approach helps limit measurement errors and sensor noise. To make the measurements even more stable, the system takes into account distances calculated over several successive images for each zone, instead of relying on a single image; this is called smoothing.
 
-The distances from this history are stored, and then a second median is calculated to obtain a more stable final distance. Based on the smoothed central distance, the Danger_zone() function determines which danger zone the user is in (peaceful, caution, or alert). Beyond 2 meters, the user is in peaceful mode, indicating that there are no obstacles that could pose a real danger. Between 2 and 1 meter, the user enters a caution zone, where they know there is an obstacle in front of them and that they must avoid it. Within 1 meter, the user knows they must move if they don't want to collide with the obstacle.
+The distances from this history are stored, and then a second median is calculated to obtain a more stable final distance. Based on the smoothed central distance, the \texttt{danger\_zone()} function determines which danger zone the user is in (peaceful, caution, or alert). Beyond 2 meters, the user is in peaceful mode, indicating that there are no obstacles that could pose a real danger. Between 2 and 1 meter, the user enters a caution zone, where they know there is an obstacle in front of them and that they must avoid it. Within 1 meter, the user knows they must move if they don't want to collide with the obstacle.
 
-Finally, the start_video_capture() function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to help calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the queue_manager.
+Finally, the \texttt{start\_video\_capture()} function manages the main operation of the video module. It has a loop that runs continuously to capture images, but also to help calculate distances and detect nearby obstacles in each area. Based on this information, a direction is chosen to avoid the obstacle, and this direction is determined by selecting the area where the distance is greatest (where there are no obstacles). The essential data is then sent to the video data queue via the queue\_manager.
 
 \subsubsection{Audio Sensor (Microphone)}
 
@@ -270,32 +260,30 @@ All these modules work together seamlessly to ensure that the system operates in
 
 \subsubsection{Arduino Board Implementation}
 
-% ============================================================================
-% TODO: TO BE COMPLETED BY TEAM MEMBERS
-% ============================================================================
-% Please describe:
-% - Arduino board specifications and setup
-% - Serial communication protocol details (115200 baud, LxxxCxxxRxxx format)
-% - Command parsing and execution on Arduino side
-% - Output device control (LED strips as placeholder for vibration motors)
-% - Code organization (get.cpp, logic.cpp, send.cpp, main.cpp)
-% - Hardware considerations and voltage issues
-% ============================================================================
+The Arduino is used as a hardware interface between the Raspberry Pi and the output devices. Its role is limited to receiving commands sent by the Raspberry Pi in real time and applying them to the vibration motors.
 
-\textcolor{red}{\textbf{[TODO: Arduino implementation section to be completed by team members]}}
+The Arduino communicates with the Raspberry Pi via a serial connection configured at 115200 baud. Commands are transmitted using a simple and robust format: \texttt{LxxxCyyyRzzz}, where each value represents the intensity of the danger expressed between 0 and 100. The letters stand for left, center, and right directions.
 
-\textit{Note: The Arduino module receives pre-processed commands from the Raspberry Pi via serial communication at 115200 baud using the LxxxCxxxRxxx protocol format.}
+Upon reception, each command is directly delivered to the Arduino side. The received values in the range of 0--100 are converted to an 8-bit scale (0--255) required for the proper interpretation of the Arduino. In this part, there is no buffer or queue; each new command immediately replaces the previous output state. This choice ensures that the feedback always reflects the most recent perception of the environment.
+
+Originally, the system was designed to accommodate three vibration motors, one for each spatial direction. Due to hardware and voltage constraints, these motors were first replaced by simple LEDs. However, the brightness of the single color of the LEDs was not fully reliable because the intensity values were difficult to distinguish visually, making it hard to verify whether the Arduino was interpreting well the intensity of the danger. To overcome this limitation, RGB LEDs are used as a visual proxy to the haptic feedback. Each LED corresponds to one direction, and its color and brightness simulate the vibration intensity. The color can smoothly transition from green (safe) through yellow and orange (increasing risk) into red (critical danger), providing a clearer and more intuitive representation of the intensity level.
+
+The Arduino code is structured into multiple C++ files:
+\begin{itemize}
+    \item A main file (\texttt{main.cpp}) is used to handle initialization and the main execution loop.
+    \item A get file (\texttt{get.cpp}) that manages the serial input.
+    \item The logic file (\texttt{logic.cpp}) is used to parse and convert the intensity values. The RGB architecture is also present here.
+    \item The send file (\texttt{send.cpp}) is used to abstract the hardware control of the output devices.
+\end{itemize}
+
+In addition, three corresponding header files (\texttt{get.h}, \texttt{logic.h}, and \texttt{send.h}) are used so that the functions of these files can be used across the different files of the project.
+
+Several hardware considerations had to be addressed. Indeed, directly powering vibration motors from the Arduino was unsafe due to current limitations and voltage mismatches, which could damage the Arduino board. Using LEDs as a placeholder allowed functional testing of the communication from the Raspberry Pi to the outputs and control logic while avoiding electrical risks and hardware damage. Integrating proper motor drivers remains future work, as well as environment tests.
 
 %%
 %% Contribution
 
 \section{Contribution}
-
-% ============================================================================
-% TODO: TO BE COMPLETED BY TEAM MEMBERS
-% ============================================================================
-
-\textcolor{red}{\textbf{[TODO: Contribution section to be completed by team members]}}
 
 This project was developed by our student group; each team member was responsible for specific components of the system to ensure a clear separation of tasks and efficient development.
 
@@ -375,10 +363,6 @@ The complete code for this project is available on GitHub at the following repos
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{../template/bibliography}
-
-% ===================================================================
-% TODO: TO BE COMPLETED - Document ends here
-% ===================================================================
 
 \end{document}
 \endinput
