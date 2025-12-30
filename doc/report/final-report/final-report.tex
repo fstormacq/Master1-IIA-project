@@ -72,7 +72,7 @@ Namur, Belgium}\acmDOI{00.0000/0000000.0000000}
 \begin{teaserfigure}
     \centering
     \vspace{-10pt}
-    \includegraphics[width=0.5\textwidth,alt={Adaptive cane system overview}]{../figures/adaptive-cane-system-final.jpeg}
+    \includegraphics[width=0.5\textwidth,alt={Adaptive cane system overview}]{../../figures/adaptive-cane-system-final.jpeg}
     \vspace{-15pt}
     \caption{Overview of the Adaptive Cane System with Intel RealSense camera, microphone, Raspberry Pi processing unit, and haptic feedback motors}
     \label{fig:teaser}
@@ -89,8 +89,46 @@ People with visual impairments represent a significant proportion of the global 
 %% Keywords and Concepts
 
 \begin{CCSXML}
-\textit{The CCS concepts will be completed later.}
+<ccs2012>
+   <concept>
+       <concept_id>10010583.10010588.10010559</concept_id>
+       <concept_desc>Hardware~Sensors and actuators</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10010583.10010588.10010598.10011752</concept_id>
+       <concept_desc>Hardware~Haptic devices</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10010583.10010588.10010596</concept_id>
+       <concept_desc>Hardware~Sensor devices and platforms</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10010520.10010553.10010562.10010563</concept_id>
+       <concept_desc>Computer systems organization~Embedded hardware</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003120.10011738.10011775</concept_id>
+       <concept_desc>Human-centered computing~Accessibility technologies</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10010583.10010588.10003247</concept_id>
+       <concept_desc>Hardware~Signal processing systems</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+ </ccs2012>
 \end{CCSXML}
+
+\ccsdesc[500]{Hardware~Sensors and actuators}
+\ccsdesc[500]{Hardware~Haptic devices}
+\ccsdesc[300]{Hardware~Sensor devices and platforms}
+\ccsdesc[300]{Computer systems organization~Embedded hardware}
+\ccsdesc[500]{Human-centered computing~Accessibility technologies}
+\ccsdesc[300]{Hardware~Signal processing systems}
 
 \maketitle
 
@@ -110,20 +148,13 @@ This cane aims to support blind people during urban navigation or any activity t
 
 \section{Related work}
 
-% ============================================================================
-% TODO: TO BE COMPLETED BY TEAM MEMBERS - URGENT
-% ============================================================================
-% Please conduct literature review and add:
-% - Existing assistive devices for visually impaired people
-% - Multimodal navigation systems
-% - Haptic feedback research
-% - Similar projects using depth cameras and/or audio sensors
-% - Key differences between existing work and our approach
-% ============================================================================
+Several assistive technologies have been developed to enhance mobility for visually impaired individuals. Manuel et al.~\cite{manuel_ai-enhanced_2026} present AI-enhanced smart glasses that combine YOLOv8-based obstacle detection with OCR and image captioning capabilities for comprehensive environmental awareness.
 
-\textcolor{red}{\textbf{[TODO: Related Work section to be completed - literature review needed]}}
+In the domain of smart canes, Loor Guaycha et al.~\cite{loor_guaycha_functional_2026} developed an ultrasonic-based prototype capable of detecting obstacles up to 100 cm away, providing real-time auditory alerts to users. Their field tests demonstrated high precision in obstacle detection.
 
-\textit{Note: A preliminary reference exists about haptic feedback for navigation. This needs to be expanded significantly.}
+For multimodal approaches, Xu et al.~\cite{xu_multimodal_2025} propose a wearable navigation system that combines GPS positioning, machine vision, and remote companion functionality, enabling independent travel and daily activities for blind users.
+
+Unlike these approaches, the system developed in this project integrates a depth camera and an audio sensor to provide real-time haptic feedback for obstacle avoidance. This multimodal approach aims to enhance user safety and spatial awareness through tactile signals.
 
 %%
 %% Methodology
@@ -367,7 +398,7 @@ The complete code for this project is available on GitHub at the following repos
 \end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{../template/bibliography}
+\bibliography{./bibliography.bib}
 
 \end{document}
 \endinput
