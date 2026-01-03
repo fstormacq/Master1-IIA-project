@@ -71,10 +71,10 @@ Namur, Belgium}\acmDOI{00.0000/0000000.0000000}
 
 \begin{teaserfigure}
     \centering
-    \vspace{-10pt}
+    % \vspace{-10pt}
     \includegraphics[width=0.5\textwidth,alt={Adaptive cane system overview}]{../../figures/adaptive-cane-system-final.jpeg}
-    \vspace{-15pt}
-    \caption{Overview of the Adaptive Cane System with Intel RealSense camera, microphone, Raspberry Pi processing unit, and haptic feedback motors}
+    % \vspace{-8pt}
+    \caption{Overview of the Adaptive Cane System}
     \label{fig:teaser}
 \end{teaserfigure}
 
@@ -82,7 +82,7 @@ Namur, Belgium}\acmDOI{00.0000/0000000.0000000}
 %% Abstract
 
 \begin{abstract}
-This project presents a connected and adaptive cane for blind or visually impaired people, designed to improve their perception of the environment and enhance their safety when facing obstacles and potential hazards. It integrates a video sensor (Intel RealSense D435i depth camera) and an audio sensor (USB microphone) to detect obstacles and assess the surrounding sound environment in real time. The acquired data are processed by a Raspberry Pi 3 using a multi-threaded producer–consumer architecture, with queue management and temporal synchronization to fuse audio and video information. The fused information is converted into adjustable intensity levels and transmitted to an Arduino, which drives haptic feedback devices simulated by RGB LEDs. Each system module was developed and tested individually, and the complete prototype was validated in a controlled environment.
+This project presents a connected and adaptive cane for blind or visually impaired people, designed to improve their perception of the environment and enhance their safety when facing obstacles and potential hazards. It integrates a video sensor (Intel RealSense D435i depth camera) and an audio sensor (USB microphone) to detect obstacles and assess the surrounding sound environment in real time. The acquired data are processed by a Raspberry Pi 3 using a multi-threaded producer-consumer architecture, with queue management and temporal synchronization to fuse audio and video information. The fused information is converted into adjustable intensity levels and transmitted to an Arduino, which drives haptic feedback devices simulated by RGB LEDs. Each system module was developed and tested individually, and the complete prototype was validated in a controlled environment.
 \end{abstract}
 
 %%
@@ -143,7 +143,7 @@ In response to these limitations, the central objective of this project is to de
 
 The system focuses entirely on haptic feedback. A set of three vibrating motors is placed on the cane to provide tactile information to the user. Each motor corresponds to a direction, meaning that one direction is not covered. Indeed, the rear direction was deliberately excluded, since the camera is positioned like a pair of glasses and cannot see behind the user. The intensity and duration of the vibrations reflect the proximity of the danger, allowing the user to interpret the environment through haptic feedback. This cane aims to assist blind people during navigation in urban environments or in any activity involving potential danger for the user.
 
-This report first presents some existing approaches that address the main problem. It then discusses the architecture of our project and its implementation. A brief overview of each member’s contribution, as well as the reasons why we were unable to evaluate our project under real-world conditions, is also provided. Finally, we discuss the various limitations and challenges encountered, along with ideas for potential improvements.
+This report first presents some existing approaches that address the main problem. It then discusses the architecture of our project and its implementation. A brief overview of each member's contribution, as well as the reasons why we were unable to evaluate our project under real-world conditions, is also provided. Finally, we discuss the various limitations and challenges encountered, along with ideas for potential improvements.
 
 %%
 %% Related work
@@ -185,7 +185,7 @@ Two distance thresholds are defined to assess the level of danger: an attention 
 
 The processing unit used is a Raspberry Pi 3, which handles data acquisition, processing, and communication with the Arduino board. The Raspberry Pi runs multiple threads to manage audio and video data streams, synchronization, and command generation for the output layer.
 
-The producer-consumer architecture is implemented with separate queues for the audio, video, synchronization buffer, and Arduino commands. Each queue has a maximum size to prevent memory overflow: the microphone and video queues can hold up to 10 items each, while the Arduino command queue is limited to 5 items. The queues use a LIFO (Last-In-First-Out) strategy to ensure real-time performance by prioritizing the most recent data. To avoid blocking the processing and communication threads, when a queue reaches capacity, the three oldest items are automatically dropped, and the dropped count is tracked for monitoring purposes.
+The producer-consumer architecture is implemented with separate queues for the audio and video data streams. Each queue has a maximum size to prevent memory overflow. The queues use a LIFO (Last-In-First-Out) strategy to ensure real-time performance by prioritizing the most recent data. To avoid blocking the processing and communication threads, when a queue reaches capacity, the three oldest items are automatically dropped, and the dropped count is tracked for monitoring purposes.
 
 This architecture allows for efficient and parallel processing of multimodal data, ensuring real-time feedback to the user. The system monitors queue statistics including total items processed, current queue sizes, and processing frequencies, which are logged every 10 seconds to track system performance.
 
@@ -209,7 +209,7 @@ In addition to this main script, a secondary Python script (\code{monitor_serial
 
 \subsubsection{Queue Manager}
 
-To simplify the management of the queues used for inter-thread communication, a dedicated module was implemented: \code{queue_manager.py}. This module creates a singleton class, \code{QueueManager}, which encapsulates the functionality of all queues used in the project. The \code{QueueManager} class initializes five separate queues: \code{micro_queue} and \code{video_queue} (maxsize=10) for raw sensor data, \code{audio_processed_queue} and \code{video_processed_queue} (maxsize=5) for processed features, and \code{arduino_queue} (maxsize=5) for commands to be sent to the Arduino.
+To simplify the management of the queues used for inter-thread communication, a dedicated module was implemented: \code{queue_manager.py}. This module creates a singleton class, \code{QueueManager}, which encapsulates the functionality of all queues used in the project. The \code{QueueManager} class initializes five separate queues: \code{micro_queue} and \code{video_queue} (maxsize=10) for raw sensor data, \code{audio_processed_queue} and \code{video_processed_queue} (maxsize=5) for processed features, and \code{arduino_queue} (maxsize=5) which was initially designed for Arduino commands but is not used in the current implementation.
 
 Each queue is configured with a maximum size to prevent memory overflow. The module provides dedicated methods for adding and retrieving data from each queue (\code{put_micro_data()}, \code{get_micro_data()}, \code{put_video_data()}, etc.). When adding data, the current timestamp is automatically attached as a tuple \code{(data, timestamp)} to facilitate temporal synchronization. The queue manager implements comprehensive monitoring, tracking both the total number of items processed and the number of dropped items for each queue. When a queue becomes full, the system drops the three oldest items before adding the new data, preventing blocking while maintaining real-time responsiveness. The \code{get_queue_stats()} method provides detailed statistics about queue usage, enabling performance monitoring and system diagnostics. Encapsulating the queue management logic within a dedicated module simplifies the code, making it easier to understand and maintain.
 
